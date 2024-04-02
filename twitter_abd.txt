@@ -1,0 +1,10 @@
+vtxsize: 4
+edgesize: 4
+weightsize: 4
+vtxsize: 4
+edgesize: 4
+weightsize: 4
+erdem
+nVtx: 61578414
+nVtx: 61578414
+nEdge: 2405026092

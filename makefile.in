@@ -1,0 +1,115 @@
+#---------------------------------------------------------------------
+# This file is part of BADIOS framework
+# Copyright (c) 2012, 
+# By:    Ahmet Erdem Sariyuce, 
+#        Erik Saule,
+#        Kamer Kaya,
+#        Umit V. Catalyurek
+#---------------------------------------------------------------------
+# For license info, please see the README.txt and LICENSE.txt files in 
+# the main directory.
+#---------------------------------------------------------------------
+
+
+MODE=gcc
+DEBUG=no
+MIC=no
+VERBOSE=no
+DEBUGMIC=no
+BCCOMP_DBG=no
+REDUCTIONS_STEPS=no
+CC_PROFILE=no
+PARTIAL_BC=no
+JUST_PREPROC=no
+
+
+ifeq ($(MODE),gcc)
+# ------- LINUX ----------
+ccc = gcc
+CC        = gcc
+CXX        = g++
+LD         = g++
+CFLAGS     = $(FLAGS) -Wstrict-prototypes 
+CXXFLAGS   = $(FLAGS)
+LDFLAGS    = $(FLAGS)
+endif
+
+# to profile with gprof
+ifeq ($(PROF),yes)
+CFLAGS    += -pg
+CXXFLAGS    += -pg
+LDFLAGS   += -pg
+endif
+
+# for warnings
+ifeq ($(WARN),yes)
+FLAGS      = -Wall -W -Wextra
+endif
+
+# debug mode
+ifeq ($(DEBUG),yes)
+CFLAGS    += -g -ggdb
+CXXFLAGS    += -g -ggdb
+LDFLAGS   += -g -ggdb
+endif
+
+# optimize with -O2
+ifeq ($(OPT),yes)
+CFLAGS    += -O2 -DNDEBUG
+CXXFLAGS    += -O2 -DNDEBUG
+LDFLAGS   += -DNDEBUG
+endif
+
+# extra debug information for BC scores
+ifeq ($(BCCOMP_DBG),yes)
+CFLAGS    += -D BCCOMP_DBG
+CXXFLAGS    += -D BCCOMP_DBG
+endif
+
+# shows the reduction after each technique
+ifeq ($(REDUCTION_STEPS),yes)
+CFLAGS    += -D REDUCTION_STEPS
+CXXFLAGS    += -D REDUCTION_STEPS
+endif
+
+# prints the connected component information after reductions
+ifeq ($(CC_PROFILE),yes)
+CFLAGS    += -D CC_PROFILE
+CXXFLAGS    += -D CC_PROFILE
+endif
+
+# for partial bc computation
+ifeq ($(PARTIAL_BC),yes)
+CFLAGS    += -D PARTIAL_BC
+CXXFLAGS    += -D PARTIAL_BC
+endif
+
+# to run only preprocessing techniques
+ifeq ($(JUST_PREPROC),yes)
+CFLAGS    += -D JUST_PREPROC
+CXXFLAGS    += -D JUST_PREPROC
+endif
+
+# print BC values of each vertex
+ifeq ($(PRINT_BC_VALUES),yes)
+CFLAGS    += -D PRINT_BC_VALUES
+CXXFLAGS    += -D PRINT_BC_VALUES
+endif
+
+AR         = ar rv
+RANLIB     = ranlib
+
+INC        = 
+LIBS       = -lm
+
+
+
+.SUFFIXES:
+.SUFFIXES: .o .cpp
+.SUFFIXES: .o .c
+
+.c.o: 
+	$(ccc) $(CFLAGS) $(INCLUDES) -c $*.c  
+
+.cpp.o: 
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $*.cpp  
