@@ -79,11 +79,11 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 		int* labels, int* nd, int* l, int* h, Bucket* bs, int* next_idvset_id,
 		int* idv_track_size, int** idv_track, int** identical_sets_c, int** identical_sets_sz, idv_info*** identical_sets,
 		int* idv_sets_size, int one_set_size, int* tmark, int* tbfsorder, double* total_weights_of_each_comp,
-		int* comp_ids_of_each_v, int* comp_no, double* CCs, double* ff);
+		int* comp_ids_of_each_v, int* comp_no, double** CCs, double** ff);
 
 void graph_check (int* xadj, vertex* adj, int nVtx);
 
-void assign_component_ids (int cid, vertex v, vertex u, int* componentid, vertex* adj, int* xadj, int nVtx, double* comp_dist_from_u);
+void assign_component_ids (int cid, vertex v, vertex u, int* componentid, vertex* adj, int* xadj, int nVtx, double* comp_dist_from_u, int* dist_arr, double* weight, double* ff);
 
 void articulation_point_detection_multiple_cc (int len, int nVtx, vertex* art_points, int* artc, vertex* stack, int* dfn,
 		int* l, int* parent, int* already_art, vertex* markcomp, vertex* component,

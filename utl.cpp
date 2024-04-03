@@ -78,27 +78,33 @@ void* myre_alloc (void* ptr, size_t size) {
 
 /**
  * 從 v 探出去的所有 node 跟 v 一樣都是同個 component id (cid)
+ * @brief
+ * 這裡也有改成，在探訪AP本尊所連接的每一個不同的component時，也有把每個component的ff累加
 */
-void assign_component_ids (int cid, vertex v, vertex u, int* componentid, vertex* adj, int* xadj, int nVtx, double* comp_dist_from_u) {
+void assign_component_ids (int cid, vertex v, vertex u, int* componentid, vertex* adj, int* xadj, int nVtx, double* comp_dist_from_u, int* dist_arr, double* weight, double* ff) {
 	
 	int* bfsorder = new int[nVtx];
 	int* mark = new int[nVtx];
 
 	#pragma region CC
-	// double* dist_arr = new double[2*nVtx];
-	double* dist_arr = (double*)malloc(sizeof(double) * nVtx);
-	for(int i = 0 ; i < nVtx ; i ++){
-		dist_arr[i] = -1;
-	}
-	// memset(dist_arr, -1, sizeof(double) * nVtx);
-	printf("dist_arr[0] = %f\n", dist_arr[0]);
-	dist_arr[u] = 0;
+	
+	// for(int i = 121421 ; i < nVtx ; i ++){
+	// 	printf("ff[%d] = %f\n", i, ff[i]);
+	// }
 
-	for(myindex neighborIndex = xadj[u] ; neighborIndex < xadj[u + 1] ; neighborIndex ++){
-		vertex neighborID = adj[neighborIndex];
-		// printf("neighborID = %d\r", neighborID);
-		// dist_arr[neighborID] = 1;
+	memset(dist_arr, -1, sizeof(int) * nVtx);
+	for(myindex j = xadj[u] ; j < xadj[u + 1] ; j++){
+		vertex y = adj[j];
+		if(y >= nVtx){
+			// printf("AP_ID : %d, neighborID = %d, nVtx = %d\n", u, y, nVtx);
+			exit(1);
+		}
+		if(y != -1){
+			dist_arr[y] = 1;
+			// printf("dist[%d] = %f\n", y, dist_arr[y]);
+		}
 	}
+
 	#pragma endregion //CC	
 
 	memset (bfsorder, 0, sizeof(int) * nVtx);
@@ -114,8 +120,12 @@ void assign_component_ids (int cid, vertex v, vertex u, int* componentid, vertex
 		componentid[x] = cid;
 		
 		#pragma region CC
-		
-		// comp_dist_from_u[cid + 1] += dist_arr[x];
+		comp_dist_from_u[cid + 1] += ((double)dist_arr[x]) * weight[x] + ff[x];
+		// if(std::isnan(comp_dist_from_u[cid + 1])){
+		// 	printf("currentNodeID = %d, dist = %d, weight = %f, ff = %f, comp_dist_from_u[%d] = NAN\n", x, dist_arr[x], weight[x], ff[x], cid + 1);
+		// 	exit(1);
+		// }
+		// printf("comp_dist_from_u[%d] = %f\n", cid + 1, comp_dist_from_u[cid + 1]);
 		#pragma endregion //CC
 
 		for (myindex j = xadj[x]; j < xadj[x + 1]; j++) {
@@ -127,20 +137,25 @@ void assign_component_ids (int cid, vertex v, vertex u, int* componentid, vertex
 				mark[y] = 1;
 				
 				#pragma region CC
-				// if(dist_arr[y] == -1){
-				// 	dist_arr[y] = dist_arr[x] + 1;
-				// }
+				if(dist_arr[y] == -1){
+					dist_arr[y] = dist_arr[x] + 1;
+				}
 				#pragma endregion //CC
 			}
 		}
 		cur++;
 	}
+	if((cid + 1) == 121446){
+		printf("comp_dist_from_u[%d] = %f\n", cid + 1, comp_dist_from_u[cid + 1]);
+	}
+	// exit(1);
 	delete[] bfsorder;
 	delete[] mark;
 	
 	#pragma region CC
 	// free(dist_arr);
 	// printf("[assign_component_ids] : free(dist)\n");
+	// exit(1);
 	#pragma endregion //CC
 }
 

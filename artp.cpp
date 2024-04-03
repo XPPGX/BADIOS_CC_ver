@@ -12,6 +12,14 @@
 ---------------------------------------------------------------------
 */
 
+/**
+ * @todo
+ * 遇到有可能會新增 node 的 function，某些會改變長度的 array 需要使用 "pointer of pointer" 去傳遞 address
+ * CCs 跟 ff 記得要改雙指標
+ * 檢查 是否 ff array 中還有 Nan : 還有
+ * 檢查 每個值的寫法是否正確
+*/
+
 #include "bc-seq-brandes.h"
 
 /**
@@ -28,7 +36,7 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 		int* labels, int* nd, int* l, int* h, Bucket* bs, int* next_idvset_id,
 		int* idv_track_size, int** idv_track, int** identical_sets_c, int** identical_sets_sz,
 		idv_info*** identical_sets, int* idv_sets_size, int one_set_size, int* tmark, int* tbfsorder,
-		double* total_weights_of_each_comp, int* comp_ids_of_each_v, int* comp_no, double* CCs, double* ff) {
+		double* total_weights_of_each_comp, int* comp_ids_of_each_v, int* comp_no, double** CCs, double** ff) {
 
 	vertex* newoldneigs = (vertex *)malloc(sizeof(vertex) * 2 * (*nVtx));// for each neig of art point, it is list of new
 																		 // and old neigs for them
@@ -37,7 +45,6 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 	//還不知道這個是幹嘛的
 	int veryoldnVtx = (*nVtx);
 	// art points are processed one-by-one
-
 	for (int i = 0; i < artc; i++) {
 		//新創建的 node 的 nodeID 從 nVtx 開始，nVtx 代表當前整個 graph 的 node 數量
 		int startnextvid = *nextvid;// id for newcomer vertices
@@ -66,24 +73,45 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 		 * 2. 最後要free(comp_dist_from_u)
 		*/
 
+
+		printf("\t[AP : assign_component_ids]\n");
 		#pragma region CC
 		//comp_dist_from_u 的 index 索引方式 : cid + 1 就是 cid 對應的 comp_dist_from_u
 		/**
 		 * @todo 要記得free comp_dist_from_u
 		*/
-		printf("current_count_AP = %d\n", i + 1);
+		// printf("current_count_AP = %d\n", i + 1);
 		double* comp_dist_from_u = (double*)malloc(sizeof(double) * (*nVtx));
+		int* dist_arr = (int*)malloc(sizeof(int) * (*nVtx));
 		memset(comp_dist_from_u, 0, sizeof(double) * (*nVtx));
-
 		for (myindex j =(*pxadj)[u]; j <(*pxadj)[u+1]; j++) {
 			int v =(*padj)[j];
 			if (v != -1) {
 				if (componentid[v] == -2) {
-					assign_component_ids (cid, v, u, componentid, (*padj), (*pxadj), (*nVtx), comp_dist_from_u);
+					assign_component_ids (cid, v, u, componentid, (*padj), (*pxadj), (*nVtx), comp_dist_from_u, dist_arr, weight, *ff);
 					cid++;
 				}
 			}
 		}
+		free(dist_arr);
+		printf("\t[AP : assign_component_ids][Done]\n");
+		/**
+		 * 取得 u 所在的 component 對 u 的 ff
+		 * 之後要取得在comp[i] 的AP分身 看外面所有的ff，只要用 total_comp_dist_from_u - comp_dist_from_u[i]就好，
+		*/
+		//
+		double total_comp_dist_from_u = 0;
+		for(int i = 0 ; i < cid + 1 ; i ++){
+			total_comp_dist_from_u += comp_dist_from_u[i];
+		}
+		// printf("total_comp_dist_from_u = %f\n", total_comp_dist_from_u);
+
+		/**
+		 * @brief
+		 * 到這裡已取得
+		 * 1. AP本尊 對切開後的每個 component 的 ff
+		 * 2. AP本尊 對切開前整個 component 的 ff
+		*/
 		#pragma endregion //CC
 
 		/**
@@ -158,8 +186,24 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 			(*padj)[i] = -1;
 
 		//myre_allocations for used arrays, if needed of course
+		#pragma region CC
+
+		printf("\t[AP][CC, ff realloc]\n");
+		*CCs = (double*)myre_alloc(*CCs, sizeof(double) * (*nVtx));
+		*ff = (double*)myre_alloc(*ff, sizeof(double) * (*nVtx));
+		for(int i = startnextvid ; i < endnextvid ; i ++){
+			(*CCs)[i] = 0;
+			(*ff)[i] = 0;
+			// printf("CC[%d] = %f, ff[%d] = %f\n", i, CCs[i], i, ff[i]);
+		}
+		printf("\t[AP][CC, ff realloc][Done]\n");
+		
+		#pragma endregion //CC
+
+
 		if ((*nVtx) > (*size1)) { //(*size1) was (2 * initnVtx) at the very beginning
 			*size1 = *nVtx;
+			// printf("rellaoc ff\n");
 #ifdef DEBUG
 			printf("some myre_alloc\n");
 #endif
@@ -244,14 +288,15 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 
 		/**
 		 * @todo [Wait]
-		 * 等看完identical vertex怎麼處理要回來看這個
+		 * 如果 AP本尊 是idv，則這邊會先把每個 AP分身 都當成有自己的一個 identical set，
+		 * 而且這個 identical set 的內容跟 AP本尊 一樣。
 		*/
 		// if art_point is also an idv
 		if ((*idv_track)[u] != -1) {
 			int idx_of_u = (*idv_track)[u];
 			int nextnum = *nextvid;
 			
-			//處理這次的 AP本尊分割的時候，新產生的幾個 AP 分身的 weight(identical version)
+			//處理這次的 AP本尊分割的時候，新產生的幾個 AP 分身的 weight(identical vertex version)
 			for (int i = startnextvid; i < endnextvid; i++) {
 				(*idv_track)[i] = (*next_idvset_id)++;
 				int idx_of_i = (*idv_track)[i];
@@ -260,6 +305,7 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 				(*identical_sets)[idx_of_i][0].weight = (*identical_sets)[idx_of_u][0].weight;
 				(*identical_sets)[idx_of_i][1].id = i;
 				(*identical_sets)[idx_of_i][1].weight = (*identical_sets)[idx_of_u][1].weight;
+
 				// reflect weights
 				weight[(*identical_sets)[idx_of_i][1].id] = (*identical_sets)[idx_of_u][1].weight;
 				for (int j = 2; j < (*identical_sets_c)[idx_of_u]; j++) {
@@ -279,7 +325,7 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 			*nextvid = nextnum;
 		}
 		else {
-			//處理在這次AP本尊分割的時候，新產生的幾個 AP 分身的weight (普通點version)
+			//處理在這次AP本尊分割的時候，新產生的幾個 AP 分身的weight (普通的點的version)
 			for (int i = startnextvid; i < endnextvid; i++) {
 				weight[i] = weight[u];
 			}
@@ -295,7 +341,7 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 		if ((*idv_track)[u] == -1)
 			u_weight -= weight[u]; //整個u所在的component的weight - u自己的weight
 		else
-			u_weight -= (*identical_sets)[(*idv_track)[u]][0].weight; //整個u所在的component的weight - ?
+			u_weight -= (*identical_sets)[(*idv_track)[u]][0].weight; //整個u所在的component的weight - u這個點所代表的 weight
 		
 		//AP本尊所在的 component 的 weight(不包含 AP本尊自身的weight)
 		double old_comp_weight =  u_weight; //old_comp_weight is initialized to weight of old art point component
@@ -305,6 +351,8 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 		 * 對每個新的 AP 分身，以 AP分身 當 source 進行 BFS traverse 取得該 AP分身 所在的 component 的 weight
 		 * 並加總到 old_comp_weight
 		*/
+		
+		
 		for (int i = startnextvid; i < endnextvid; i++) {
 			if (art_track[i - initnVtx] == u) {
 
@@ -346,6 +394,18 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 					i_weight -= weight[i];
 				else
 					i_weight -= (*identical_sets)[(*idv_track)[i]][0].weight;
+				
+
+
+				#pragma region CC
+				
+				(*ff)[i] += (*ff)[u] + (total_comp_dist_from_u - comp_dist_from_u[i]);
+				if(std::isnan((*ff)[i])){
+					printf("new ff[%d] = %f, ff[u] = %f, total_comp_dist_from_u = %f, comp_dist_from_u[%d] = %f\n", i, (*ff)[i], (*ff)[u], total_comp_dist_from_u, i, comp_dist_from_u[u]);
+					// exit(1);
+				}
+				#pragma endregion //CC
+				
 
 				old_comp_weight += i_weight;
 			}
@@ -425,7 +485,7 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 #endif
 			(*len)++;
 			mark[i] = 1;
-			total_weights_of_each_comp[comp_ids_of_each_v[i]] = total_weight_at_the_beginning; //這裡不知道是否有記錯
+			total_weights_of_each_comp[comp_ids_of_each_v[i]] = total_weight_at_the_beginning; //這裡不知道是否有記錯，或是他就是要這樣記
 		}
 
 		free(counter_extxadj);
@@ -434,8 +494,10 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 	}
 
 	*bc = (Betweenness *) myre_alloc (*bc, sizeof(Betweenness) * (*nVtx)); //myre_allocations for bc are done
+
 	for (int i = veryoldnVtx; i < (*nVtx); i++)
 		(*bc)[i] = 0.;
+		
 
 	if ((*nVtx) > (*size4)) {
 		*size4 = *nVtx;
@@ -459,7 +521,6 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 
 	if (*nVtx > (*size2)) { //(*size2) was (2 * (initnVtx + 1)) at the beginning
 		*size2 = *nVtx;
-
 	}
 
 	// allocated memories are freed
@@ -490,7 +551,14 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 	}
 #endif
 
-	//這邊還看不懂
+	// for(int i = 0 ; i < *nVtx ; i ++){
+	// 	// printf("ff[%d] = %f\033[K\r", i, ff[i]);
+	// 	printf("ff[%d] = %f\n", i, ff[i]);
+	// }
+	// printf("\n");
+	/**
+	 * 這裡還看不懂，大致上是要利用 bucket 來加速尋找 clique
+	*/
 	// Bucket is repopulated since it seems easier and cheaper
 	int max_degree = 0;
 	for (int i = 0; i < *nVtx; i++) {

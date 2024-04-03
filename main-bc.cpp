@@ -327,6 +327,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 						int b = *numof_removed_edges;
 						printf("at DEG-1 REMOVAL, %d num of edges are removed\n", b-a);
 #endif
+						printf("\n");
 					}
 
 
@@ -371,7 +372,23 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 						int b = *numof_removed_edges;
 						printf("at BRIDGE REMOVAL, %d num of edges are removed\n", b-a);
 #endif
+						printf("\n");
+						// exit(1);
 					}
+
+					/**
+					 * 用下面這個註解掉的 for迴圈，檢查 ff 中是否有 nan
+					 * @brief
+					 * 在還沒有identical vertex的情況下，目前沒有 ff 是 nan
+					 * 
+					*/
+					// for(int i = 0 ; i < nVtx ; i ++){
+					// 	if(std::isnan(ff[i])){
+					// 		printf("[ERROR] ff[%d] = %f\n", i, ff[i]);
+					// 		exit(1);
+					// 	}
+					// }
+
 
 					//articulation point separation
 					{
@@ -403,7 +420,8 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 
 							articulation_point_detection_multiple_cc (updatedlen, nVtx, art_points, &artc, stack, dfn, l,
 									parent, already_art, mark__comp, component, (*padj), (*pxadj));
-
+							
+							printf("[AP : detection][Done]\n");
 							*numof_art_points += artc;
 
 							delete[] stack;
@@ -433,7 +451,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 										ordered_weight, ordered_cardinality, all_graphs_xadj, all_graphs_len, labels, nd, l,
 										h, &bs, &next_idvset_id, &idv_track_size, &idv_track, &identical_sets_c,
 										&identical_sets_sz, &identical_sets, &idv_sets_size, one_set_size, tmark, tbfsorder,
-										total_weights_of_each_comp, comp_ids_of_each_v, &comp_no, CCs, ff);
+										total_weights_of_each_comp, comp_ids_of_each_v, &comp_no, &CCs, &ff);
 
 								int end = nVtx;
 								*numof_newly_created_vertices += end - begin;
@@ -490,6 +508,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 							if (Try >= THROW_AWAY) {
 								*artp_rem += (tk - tj);
 							}
+							exit(1);
 						}
 #ifdef REDUCTION_STEPS
 						int b = *numof_art_points;

@@ -16,6 +16,8 @@
  * @brief [Hanging]
  * @todo 
  * 1. bridge_removal的 if, else if, else if 的 statement 都還沒看
+ * 
+ * 2. 這邊用來 BFS traverse 的 for迴圈 可以減少
 */
 
 #include "bc-seq-brandes.h"
@@ -95,15 +97,26 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 				cur++;
 			}
 			/**
-			 * wu : u所在的component的所有node數量
+			 * wu : 不是u所在的component的所有node數量，而是 u 能夠探訪到的所有nodes數量，因為某些 node 已經開始有 weight，所以上面的 traverse 可以記數到除了 v 的 component之外的 所有 nodes 數量
 			 * wv : v所在的component的所有node數量
+			 * 這下面看不懂就畫圖
 			*/
 			wu = total_weight;
-			wv = total_w_of_comp - wu;
+			wv = total_w_of_comp - wu; //check過了，這個 total_w_of_comp - wu，算出來，跟 v 自己去 traverse 自己的 component 是一樣的
+
+
 			(*comp_no)++;
 
-			total_weights_of_each_comp[comp_ids_of_each_v[u]] = total_w_of_comp;  //這邊是不是要改成 wu
-			total_weights_of_each_comp[comp_ids_of_each_v[v]] = total_w_of_comp;  //這邊是不是要改成 wv
+			total_weights_of_each_comp[comp_ids_of_each_v[u]] =	total_w_of_comp;  //這是對的，因為每次都要從整張圖一開始的component去看
+			total_weights_of_each_comp[comp_ids_of_each_v[v]] = total_w_of_comp;  //這是對的，因為每次都要從整張圖一開始的component去看
+
+			if(std::isnan(wu) || std::isnan(wu) || std::isnan(total_w_of_comp)){
+				printf("[ERROR] wu = %f, wv = %f, total_weight_of_each_comp = %f\n", wu, wv, total_w_of_comp);
+				exit(1);
+			}
+			else{
+				// printf("cid_u = %d, wu = %f, cid_v = %d, wv = %f, total_weight_of_each_comp = %f\n", comp_ids_of_each_v[u], wu, comp_ids_of_each_v[v], wv, total_w_of_comp);
+			}
 
 			int idx_of_u = idv_track[u];
 			bool is_u_idv = (idx_of_u == -1) ? false : true;
@@ -145,11 +158,11 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 
 						dist_arr[w] = dist_arr[v] + 1;
 						if(idv_track[w] == -1){
-							comp_dist_from_u += dist_arr[w];
+							comp_dist_from_u += dist_arr[w] * weight[w] + ff[w];
 						}
 						else{
 							int idx_of_w = idv_track[w];
-							comp_dist_from_u += dist_arr[w] * identical_sets[idx_of_w][0].weight;
+							comp_dist_from_u += dist_arr[w] * identical_sets[idx_of_w][0].weight + ff[w];
 						}
 					}
 				}
@@ -175,11 +188,11 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 
 						dist_arr[w] = dist_arr[currentNodeID] + 1;
 						if(idv_track[w] == -1){
-							comp_dist_from_v += dist_arr[w];
+							comp_dist_from_v += dist_arr[w] * weight[w] + ff[w];
 						}
 						else{
 							int idx_of_w = idv_track[w];
-							comp_dist_from_v += dist_arr[w] * identical_sets[idx_of_w][0].weight;
+							comp_dist_from_v += dist_arr[w] * identical_sets[idx_of_w][0].weight + ff[w];
 						}
 					}
 				}
@@ -242,8 +255,8 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 				double temp_u_ff = ff[u];
 				double temp_v_ff = ff[v];
 
-				ff[u] += temp_v_ff + identical_sets[idx_of_v][0].weight + comp_dist_from_v + wv;
-				ff[v] += temp_u_ff + identical_sets[idx_of_u][0].weight + comp_dist_from_u + wu;
+				ff[u] += temp_v_ff + comp_dist_from_v + wv;
+				ff[v] += temp_u_ff + comp_dist_from_u + wu;
 
 				#pragma endregion //CC
 
@@ -306,8 +319,8 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 				double temp_u_ff = ff[u];
 				double temp_v_ff = ff[v];
 
-				ff[u] += temp_v_ff + weight[v] + comp_dist_from_v + wv;
-				ff[v] += temp_u_ff + identical_sets[idx_of_u][0].weight + comp_dist_from_u + wu;
+				ff[u] += temp_v_ff + comp_dist_from_v + wv;
+				ff[v] += temp_u_ff + comp_dist_from_u + wu;
 
 				#pragma endregion //CC
 				
@@ -357,8 +370,8 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 				double temp_u_ff = ff[u];
 				double temp_v_ff = ff[v];
 				
-				ff[u] += temp_v_ff + identical_sets[idx_of_v][0].weight + comp_dist_from_v + wv;
-				ff[v] += temp_u_ff + weight[u] + comp_dist_from_u + wu;
+				ff[u] += temp_v_ff + comp_dist_from_v + wv;
+				ff[v] += temp_u_ff + comp_dist_from_u + wu;
 
 				#pragma endregion //CC
 
@@ -379,6 +392,7 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 
 			}
 			else {
+
 				bc [u] += (wu - 1) * wv;
 #ifdef BCCOMP_DBG
 				printf("source br adds bc[%d]: %lf\n",u+1,(wu - 1) * wv);
@@ -394,9 +408,10 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 
 				double temp_u_ff = ff[u];
 				double temp_v_ff = ff[v];
-				
-				ff[u] += temp_v_ff + weight[v] + comp_dist_from_v + wv;
-				ff[v] += temp_u_ff + weight[u] + comp_dist_from_u + wu; 
+
+				ff[u] += temp_v_ff + comp_dist_from_v + wv;
+				ff[v] += temp_u_ff + comp_dist_from_u + wu; 
+				// printf("[Bridge : usual] ff[u] = %f, ff[v] = %f\r", ff[u], ff[v]);
 
 				#pragma endregion //CC
 				
@@ -422,7 +437,6 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 
 		}
 	}
-
 	
 
 	//類似檢查的機制
