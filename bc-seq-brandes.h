@@ -54,6 +54,7 @@ struct idv_info {
 struct card_info {
 	int cardinality;
 	double total_weight;
+	double total_ff;
 };
 
 using namespace std;
@@ -128,7 +129,7 @@ void compute_bc_weight_card (int start, int end, vertex*  ordered_comp, double* 
 
 void compute_bc_card (int start, int end, vertex*  ordered_comp, vertex*  newxadj, vertex*  newadj,
 		vertex*  bfsorder, int*  endpred, int*  level, pathnumber*  sigma, vertex*  Pred, Betweenness*  delta,
-		Betweenness*  bc, card_info* ordered_cardinality, util::timestamp& phase1time, util::timestamp& phase2time);
+		Betweenness*  bc, card_info* ordered_cardinality, util::timestamp& phase1time, util::timestamp& phase2time, double* CCs);
 
 void compute_bc_base (int start, int end, vertex* ordered_comp, vertex* newxadj,
 		vertex* newadj, vertex* bfsorder, int* endpred, int* level, pathnumber* sigma,
@@ -173,6 +174,6 @@ int base_bc(int nVtx, int *xadj, int *adj, Betweenness *bc,
 
 void reorder_graph (int nVtx, int len, vertex* component, vertex* ordered_comp, vertex* reverse_ordered_comp,
 			double* weight, double* ordered_weight, int** pxadj, int** padj, vertex* newxadj, vertex* newadj,
-			int* all_graphs_xadj, int* agx, int* num_comp, int* k, int* c, int* biggest_cc_after);
+			int* all_graphs_xadj, int* agx, int* num_comp, int* k, int* c, int* biggest_cc_after, double* ff, double* ordered_ff);
 
 void remove_minus_ones_in_graph (int nVtx, int* num_edges, int** pxadj, int** padj);

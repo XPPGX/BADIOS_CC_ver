@@ -144,6 +144,11 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 		memset (reverse_ordered_comp, -1, sizeof(vertex) * 2 * nVtx);
 		memset (reversecomp, -1, sizeof(vertex) * 2 * nVtx);
 		double* ordered_weight = (double *) malloc (sizeof(double) * 2 * nVtx);
+
+		#pragma region CC
+		double* ordered_ff = (double*)malloc(sizeof(double) * 2 * nVtx);
+		#pragma endregion //CC
+
 		card_info* ordered_cardinality = (card_info *)malloc(sizeof(card_info) * 2 * nVtx);
 		int* all_graphs_xadj = (int *) malloc (sizeof(int) * 2 * nVtx);
 		int* all_graphs_len = (int *) malloc (sizeof(int) * 2 * nVtx);
@@ -855,10 +860,10 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 				*/
 				// Reordering wrt BFS order
 				util::timestamp tl;
-
+				
 				reorder_graph (nVtx, len, component, ordered_comp, reverse_ordered_comp,
 							weight, ordered_weight, pxadj, padj, newxadj, newadj,
-							all_graphs_xadj, &agx, num_comp, &k, &c, biggest_cc_after);
+							all_graphs_xadj, &agx, num_comp, &k, &c, biggest_cc_after, ff, ordered_ff);
 
 				util::timestamp tm;
 				if (Try >= THROW_AWAY) {
@@ -885,11 +890,13 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 				if (idv_track[ordered_comp[i]] == -1) {
 					ordered_cardinality[i].cardinality = 1;
 					ordered_cardinality[i].total_weight = ordered_weight[i];
+					ordered_cardinality[i].total_ff = ordered_ff[i];
 				}
 				else {
 					assert((identical_sets_c[idv_track[ordered_comp[i]]] - 1) > 1);
 					ordered_cardinality[i].cardinality = (identical_sets_c[idv_track[ordered_comp[i]]] - 1);
 					ordered_cardinality[i].total_weight = identical_sets[idv_track[ordered_comp[i]]][0].weight;
+					ordered_cardinality[i].total_ff = identical_sets[idv_track[ordered_comp[i]]][0].idv_ff;
 				}
 			}
 		}
@@ -939,14 +946,14 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 					if (kernel == 0) // no weight, no cardinality
 						compute_bc_base(start, end, ordered_comp, newxadj, newadj, bfsorder,
 								endpred, level, sigma, Pred, delta, (*bc), phase1time, phase2time, CCs, ff);
-					else if (kernel == 1) // only weight
+					else if (kernel == 1) // only weight //[Not Done]
 						compute_bc_weight (start, end, ordered_comp, ordered_weight, newxadj,
 								newadj, bfsorder, endpred, level, sigma,
 								Pred, delta, (*bc), phase1time, phase2time);
 					else if (kernel == 2) // only cardinality
 						compute_bc_card (start, end, ordered_comp, newxadj, newadj, bfsorder, endpred, level, sigma,
-								Pred, delta, (*bc), ordered_cardinality, phase1time, phase2time);
-					else if (kernel == 3) // weight and cardinality
+								Pred, delta, (*bc), ordered_cardinality, phase1time, phase2time, CCs);
+					else if (kernel == 3) // weight and cardinality //[Not Done]
 						compute_bc_weight_card(start, end, ordered_comp, ordered_weight, newxadj, newadj, bfsorder,
 								endpred, level, sigma, Pred, delta, (*bc), ordered_cardinality, phase1time, phase2time);
 				}

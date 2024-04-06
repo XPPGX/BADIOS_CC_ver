@@ -21,7 +21,7 @@
 */
 void reorder_graph (int nVtx, int len, vertex* component, vertex* ordered_comp, vertex* reverse_ordered_comp,
 			double* weight, double* ordered_weight, int** pxadj, int** padj, vertex* newxadj, vertex* newadj,
-			int* all_graphs_xadj, int* agx, int* num_comp, int* k, int* c, int* biggest_cc_after) {
+			int* all_graphs_xadj, int* agx, int* num_comp, int* k, int* c, int* biggest_cc_after, double* ff, double* ordered_ff) {
 
 	int newlen = 0;
 	vertex* markcomp = new vertex[nVtx];
@@ -35,6 +35,11 @@ void reorder_graph (int nVtx, int len, vertex* component, vertex* ordered_comp, 
 			int comp_counter = 0;
 			ordered_comp[(*k) + comp_counter] = u;
 			ordered_weight[(*k) + comp_counter] = weight[u];
+
+			#pragma region CC
+			ordered_ff[(*k) + comp_counter] = ff[u];
+			#pragma endregion //CC
+
 			reverse_ordered_comp[u] = comp_counter;
 			comp_counter++;
 			int cur = comp_counter - 1;
@@ -55,6 +60,11 @@ void reorder_graph (int nVtx, int len, vertex* component, vertex* ordered_comp, 
 							markcomp[w] = 1;
 							ordered_comp[(*k) + comp_counter] = w;
 							ordered_weight[(*k) + comp_counter] = weight[w];
+
+							#pragma region CC
+							ordered_ff[(*k) + comp_counter] = ff[w];
+							#pragma endregion //CC
+
 							reverse_ordered_comp[w] = comp_counter;
 							comp_counter++;
 						}
