@@ -20,7 +20,7 @@ void remove_covs (int len, vertex* component, int cov_i, vertex* clique_only_v, 
 		vertex* adj, vertex* bfsorder, int* endpred, int* level, pathnumber* sigma,
 		vertex* Pred, Betweenness* delta, Betweenness* bc, int* numof_removed_edges, int* idv_track,
 		int* identical_sets_c, idv_info** identical_sets, int next_idvset_id, double* totalw_of_covs,
-		double* total_weights_of_each_comp, int* comp_ids_of_each_v) {
+		double* total_weights_of_each_comp, int* comp_ids_of_each_v, double* CCs, double* ff) {
 
 	int* tmark = (int *)malloc(sizeof(int) * 2 * nVtx);
 	vertex* tbfsorder = (vertex *)malloc(sizeof(vertex) * 2 * nVtx);
@@ -67,7 +67,7 @@ void remove_covs (int len, vertex* component, int cov_i, vertex* clique_only_v, 
 
 
 			//這邊把 u 的 bc先算完
-			bc_comp_for_cov (u, nVtx, weight, xadj, adj, bfsorder, endpred, level, sigma, Pred, delta, bc, idv_track, identical_sets_c, identical_sets);
+			bc_comp_for_cov (u, nVtx, weight, xadj, adj, bfsorder, endpred, level, sigma, Pred, delta, bc, idv_track, identical_sets_c, identical_sets, CCs, ff);
 
 			/**
 			 * 斷開 clique_vertex u 跟他的所有鄰居的連結
@@ -141,7 +141,7 @@ void remove_covs (int len, vertex* component, int cov_i, vertex* clique_only_v, 
 void bc_comp_for_cov (int source, int nvtx, double* weight, int* xadj,
 		vertex* adj, vertex* bfsorder, int* endpred, int* level, pathnumber* sigma,
 		vertex* Pred, Betweenness* delta, Betweenness* bc, int* idv_track,
-		int* identical_sets_c, idv_info** identical_sets) {
+		int* identical_sets_c, idv_info** identical_sets, double* CCs, double* ff) {
 
 #ifdef BCCOMP_DBG
 	printf("%d is cov!!!\n",source+1);
@@ -151,16 +151,16 @@ void bc_comp_for_cov (int source, int nvtx, double* weight, int* xadj,
 		int endofbfsorder = 1;
 		bfsorder[0] = source;
 
-		for (int i = 0; i < nvtx; i++)
-			endpred[i] = xadj[i];
+		// for (int i = 0; i < nvtx; i++)
+		// 	endpred[i] = xadj[i];
 
 		for (int i = 0; i < nvtx; i++)
 			level[i] = -2;
 		level[source] = 0;
 
-		for (int i = 0; i < nvtx; i++)
-			sigma[i] = 0;
-		sigma[source] = 1;
+		// for (int i = 0; i < nvtx; i++)
+		// 	sigma[i] = 0;
+		// sigma[source] = 1;
 
 		// step 1: build shortest path graph
 		int cur = 0;
@@ -175,74 +175,92 @@ void bc_comp_for_cov (int source, int nvtx, double* weight, int* xadj,
 					if (level[w] < 0) {
 						level[w] = level[v]+1;
 						bfsorder[endofbfsorder++] = w;
-					}
-					if (level[w] == level[v]+1) {
-						if (idv_track[v] == -1)
-							sigma[w] += sigma[v];
-						else {
-							sigma[w] += sigma[v] * (identical_sets_c[idx_of_v] - 1);;
+						
+						#pragma region CC
+
+						if(idv_track[w] == -1){
+							CCs[source] += ff[w] + level[w] * weight[w];
 						}
+						else{
+							int idx_of_w = idv_track[w];
+							CCs[source] += identical_sets[idx_of_w][0].idv_ff + level[w] * identical_sets[idx_of_w][0].weight;
+						}
+
+						CCs[w] += ff[source] + level[w] * weight[source];
+
+						#pragma endregion //CC
 					}
-					else if (level[w] == level[v] - 1) {
-						Pred[endpred[v]++] = w;
-					}
+
+					// if (level[w] == level[v]+1) {
+					// 	if (idv_track[v] == -1){
+					// 		CCs[w] += ff[v] + level[w] * weight[v];
+					// 		// sigma[w] += sigma[v];
+					// 	}
+					// 	else {
+					// 		CCs[w] += identical_sets[idx_of_v][0].idv_ff + level[w] * identical_sets[idx_of_v][0].weight;
+					// 		// sigma[w] += sigma[v] * (identical_sets_c[idx_of_v] - 1);
+					// 	}
+					// }
+					// else if (level[w] == level[v] - 1) {
+					// 	Pred[endpred[v]++] = w;
+					// }
 				}
 			}
 			cur++;
 		}
 
-		for (int i = 0; i < nvtx; i++) {
-			delta[i] = 0.;
-		}
+		// for (int i = 0; i < nvtx; i++) {
+		// 	delta[i] = 0.;
+		// }
 
-		for (int i = 0; i < nvtx; i++) {
-			delta[i] += (weight[i]) - 1;
-		}
+		// for (int i = 0; i < nvtx; i++) {
+		// 	delta[i] += (weight[i]) - 1;
+		// }
 
 		// step 2: compute betweenness
-		for (int i = endofbfsorder - 1; i > 0; i--) {
-			vertex w = bfsorder[i];
-			if (idv_track[w] == -1) {
-				for (myindex j = xadj[w]; j < endpred[w]; j++) {
-					vertex v = Pred[j];
-					delta[v] += sigma[v] * (1 + delta[w]) / sigma[w];
-				}
-			}
-			else { // phase-2 hack for handling idv vertices
-				//                 printf("%d is idv\n",w+1);
-				int idx_of_w = idv_track[w];
-				for (myindex j = xadj[w]; j < endpred[w]; j++) {
-					vertex v = Pred[j];
-					delta[v] += sigma[v] * (((identical_sets_c[idx_of_w] - 1) *
-							(delta[w] + 1 - identical_sets[idx_of_w][1].weight)) + identical_sets[idx_of_w][0].weight) / sigma[w];
-				}
-			}
+// 		for (int i = endofbfsorder - 1; i > 0; i--) {
+// 			vertex w = bfsorder[i];
+// 			if (idv_track[w] == -1) {
+// 				for (myindex j = xadj[w]; j < endpred[w]; j++) {
+// 					vertex v = Pred[j];
+// 					delta[v] += sigma[v] * (1 + delta[w]) / sigma[w];
+// 				}
+// 			}
+// 			else { // phase-2 hack for handling idv vertices
+// 				//                 printf("%d is idv\n",w+1);
+// 				int idx_of_w = idv_track[w];
+// 				for (myindex j = xadj[w]; j < endpred[w]; j++) {
+// 					vertex v = Pred[j];
+// 					delta[v] += sigma[v] * (((identical_sets_c[idx_of_w] - 1) *
+// 							(delta[w] + 1 - identical_sets[idx_of_w][1].weight)) + identical_sets[idx_of_w][0].weight) / sigma[w];
+// 				}
+// 			}
 
-			bc[w] += weight[source] * delta[w];
-			bc[w] += weight[source] * (delta[w] - (weight[w] - 1));
+// 			bc[w] += weight[source] * delta[w];
+// 			bc[w] += weight[source] * (delta[w] - (weight[w] - 1));
 
-#ifdef BCCOMP_DBG
-			printf("weight[%d]: %lf, delta[%d]: %lf\n",source+1,weight[source],source+1,delta[source]);
-			printf("weight[%d]: %lf, delta[%d]: %lf\n",w+1,weight[w],w+1,delta[w]);
-			printf("source %d adds bc[%d]: %lf\n",source+1,w+1,((weight[source])) * (delta[w]));
-			printf("source %d adds bc[%d]: %lf\n",source+1,w+1,((weight[source])) * (delta[w] - ((weight[w]) - 1)));
-#endif
+// #ifdef BCCOMP_DBG
+// 			printf("weight[%d]: %lf, delta[%d]: %lf\n",source+1,weight[source],source+1,delta[source]);
+// 			printf("weight[%d]: %lf, delta[%d]: %lf\n",w+1,weight[w],w+1,delta[w]);
+// 			printf("source %d adds bc[%d]: %lf\n",source+1,w+1,((weight[source])) * (delta[w]));
+// 			printf("source %d adds bc[%d]: %lf\n",source+1,w+1,((weight[source])) * (delta[w] - ((weight[w]) - 1)));
+// #endif
 
 
-			if (idv_track[w] != -1) {
-				int idv_of_w = idv_track[w];
-				for (int i = 2; i < identical_sets_c[idv_of_w]; i++) {
-					bc[identical_sets[idv_of_w][i].id] += weight[source] * (delta[w] - weight[w] + identical_sets[idv_of_w][i].weight) ;
-					bc[identical_sets[idv_of_w][i].id] += weight[source] * (delta[w] - (weight[w] - 1));
-#ifdef BCCOMP_DBG
-					printf("%lf is added to bc[%d]\n", weight[source] * (delta[w] - weight[w] + identical_sets[idv_of_w][i].weight),
-							identical_sets[idv_of_w][i].id+1);
-					printf("%lf is added to bc[%d]\n", weight[source] * (delta[w] - (weight[w] - 1)), identical_sets[idv_of_w][i].id+1);
-#endif
-				}
-			}
-		}
-		bc[source] += ((weight[source] - 1)) * (delta[source] - ((weight[source]) - 1));
+// 			if (idv_track[w] != -1) {
+// 				int idv_of_w = idv_track[w];
+// 				for (int i = 2; i < identical_sets_c[idv_of_w]; i++) {
+// 					bc[identical_sets[idv_of_w][i].id] += weight[source] * (delta[w] - weight[w] + identical_sets[idv_of_w][i].weight) ;
+// 					bc[identical_sets[idv_of_w][i].id] += weight[source] * (delta[w] - (weight[w] - 1));
+// #ifdef BCCOMP_DBG
+// 					printf("%lf is added to bc[%d]\n", weight[source] * (delta[w] - weight[w] + identical_sets[idv_of_w][i].weight),
+// 							identical_sets[idv_of_w][i].id+1);
+// 					printf("%lf is added to bc[%d]\n", weight[source] * (delta[w] - (weight[w] - 1)), identical_sets[idv_of_w][i].id+1);
+// #endif
+// 				}
+// 			}
+// 		}
+// 		bc[source] += ((weight[source] - 1)) * (delta[source] - ((weight[source]) - 1));
 
 #ifdef BCCOMP_DBG
 		printf("source %d adds bc[%d]: %lf\n",source+1,source+1,((weight[source]) - 1) * (delta[source] - ((weight[source]) - 1)));
@@ -256,23 +274,23 @@ void bc_comp_for_cov (int source, int nvtx, double* weight, int* xadj,
 		int endofbfsorder = 1;
 		bfsorder[0] = source;
 
-		for (int i = 0; i < nvtx; i++)
-			endpred[i] = xadj[i];
+		// for (int i = 0; i < nvtx; i++)
+		// 	endpred[i] = xadj[i];
 
 		for (int i = 0; i < nvtx; i++)
 			level[i] = -2;
 		level[source] = 0;
 
-		for (int i = 0; i < nvtx; i++)
-			sigma[i] = 0;
-		sigma[source] = 1;
+		// for (int i = 0; i < nvtx; i++)
+		// 	sigma[i] = 0;
+		// sigma[source] = 1;
 
 		// step 1: build shortest path graph
 		int cur = 0;
 		while (cur != endofbfsorder) {
 			vertex v = bfsorder[cur];
 			assert (level[v] >= 0);
-			int idx_of_v = idv_track[v];
+			// int idx_of_v = idv_track[v];
 			for (myindex j = xadj[v]; j < xadj[v + 1]; j++) {
 				vertex w = adj[j];
 				if (w != -1)
@@ -280,83 +298,95 @@ void bc_comp_for_cov (int source, int nvtx, double* weight, int* xadj,
 					if (level[w] < 0) {
 						level[w] = level[v]+1;
 						bfsorder[endofbfsorder++] = w;
-					}
-					if (level[w] == level[v]+1) {
-						if ((idv_track[v] != -1) && (v != source)) {
-							sigma[w] += sigma[v] * (identical_sets_c[idx_of_v] - 1);
+
+						#pragma region CC
+
+						if(idv_track[w] == -1){
+							CCs[source] += ff[w] + level[w] * weight[w];
 						}
-						else
-							sigma[w] += sigma[v];
+						else{
+							int idx_of_w = idv_track[w];
+							CCs[source] += identical_sets[idx_of_w][0].idv_ff + level[w] * identical_sets[idx_of_w][0].weight;
+						}
+						CCs[w] += identical_sets[idx_of_source][0].idv_ff + level[w] * identical_sets[idx_of_source][0].weight;
+
+						#pragma endregion //CC
+
 					}
-					else if (level[w] == level[v] - 1) {
-						Pred[endpred[v]++] = w;
-					}
+					// if (level[w] == level[v]+1) {
+					// 	if ((idv_track[v] != -1) && (v != source)) {
+					// 		sigma[w] += sigma[v] * (identical_sets_c[idx_of_v] - 1);
+					// 	}
+					// 	else
+					// 		sigma[w] += sigma[v];
+					// }
+					// else if (level[w] == level[v] - 1) {
+					// 	Pred[endpred[v]++] = w;
+					// }
 				}
 			}
 			cur++;
 		}
 
-		for (int i = 0; i < nvtx; i++) {
-			delta[i] = 0.;
-		}
+		// for (int i = 0; i < nvtx; i++) {
+		// 	delta[i] = 0.;
+		// }
 
-		for (int i = 0; i < nvtx; i++) {
-			delta[i] += (weight[i]) - 1;
-		}
+		// for (int i = 0; i < nvtx; i++) {
+		// 	delta[i] += (weight[i]) - 1;
+		// }
 
 		// step 2: compute betweenness
-		for (int i = endofbfsorder - 1; i > 0; i--) {
-			vertex w = bfsorder[i];
-			if ((idv_track[w] != -1) && (w != source)) {
-				int idx_of_w = idv_track[w];
-				for (myindex j = xadj[w]; j < endpred[w]; j++) {
-					vertex v = Pred[j];
-					delta[v] += sigma[v] * (((identical_sets_c[idx_of_w] - 1) *
-							(delta[w] + 1 - identical_sets[idx_of_w][1].weight)) + identical_sets[idx_of_w][0].weight) / sigma[w];
-				}
-			}
-			else { // phase-2 hack for handling idv vertices
-				for (myindex j = xadj[w]; j < endpred[w]; j++) {
-					vertex v = Pred[j];
-					delta[v] += sigma[v] * (1+delta[w])/sigma[w];
-				}
-			}
+// 		for (int i = endofbfsorder - 1; i > 0; i--) {
+// 			vertex w = bfsorder[i];
+// 			if ((idv_track[w] != -1) && (w != source)) {
+// 				int idx_of_w = idv_track[w];
+// 				for (myindex j = xadj[w]; j < endpred[w]; j++) {
+// 					vertex v = Pred[j];
+// 					delta[v] += sigma[v] * (((identical_sets_c[idx_of_w] - 1) *
+// 							(delta[w] + 1 - identical_sets[idx_of_w][1].weight)) + identical_sets[idx_of_w][0].weight) / sigma[w];
+// 				}
+// 			}
+// 			else { // phase-2 hack for handling idv vertices
+// 				for (myindex j = xadj[w]; j < endpred[w]; j++) {
+// 					vertex v = Pred[j];
+// 					delta[v] += sigma[v] * (1+delta[w])/sigma[w];
+// 				}
+// 			}
 
-			bc[w] += identical_sets[idx_of_source][0].weight * delta[w];
-			bc[w] += identical_sets[idx_of_source][0].weight * (delta[w] - (weight[w] - 1));
-#ifdef BCCOMP_DBG
-			printf("source %d adds bc[%d]: %lf\n",source+1, w+1, identical_sets[idx_of_source][0].weight * delta[w]);
-			printf("source %d adds bc[%d]: %lf\n",source+1, w+1, identical_sets[idx_of_source][0].weight * (delta[w] - (weight[w] - 1)));
-#endif
+// 			bc[w] += identical_sets[idx_of_source][0].weight * delta[w];
+// 			bc[w] += identical_sets[idx_of_source][0].weight * (delta[w] - (weight[w] - 1));
+// #ifdef BCCOMP_DBG
+// 			printf("source %d adds bc[%d]: %lf\n",source+1, w+1, identical_sets[idx_of_source][0].weight * delta[w]);
+// 			printf("source %d adds bc[%d]: %lf\n",source+1, w+1, identical_sets[idx_of_source][0].weight * (delta[w] - (weight[w] - 1)));
+// #endif
 
-			if (idv_track[w] != -1) {
-				int idv_of_w = idv_track[w];
-				for (int i = 2; i < identical_sets_c[idv_of_w]; i++) {
-					bc[identical_sets[idv_of_w][i].id] += identical_sets[idx_of_source][0].weight * (delta[w] - weight[w] + identical_sets[idv_of_w][i].weight);
-					bc[identical_sets[idv_of_w][i].id] += identical_sets[idx_of_source][0].weight * (delta[w] -
-							(weight[w] - 1));
-#ifdef BCCOMP_DBG
-					printf("%lf is added to bc[%d]\n", identical_sets[idx_of_source][0].weight * (delta[w] - weight[w] + identical_sets[idv_of_w][i].weight), identical_sets[idv_of_w][i].id+1);
-					printf("%lf is added to bc[%d]\n", identical_sets[idx_of_source][0].weight * (delta[w] -
-							weight[w] - 1), identical_sets[idv_of_w][i].id+1);
-#endif
-				}
-			}
-		}
+// 			if (idv_track[w] != -1) {
+// 				int idv_of_w = idv_track[w];
+// 				for (int i = 2; i < identical_sets_c[idv_of_w]; i++) {
+// 					bc[identical_sets[idv_of_w][i].id] += identical_sets[idx_of_source][0].weight * (delta[w] - weight[w] + identical_sets[idv_of_w][i].weight);
+// 					bc[identical_sets[idv_of_w][i].id] += identical_sets[idx_of_source][0].weight * (delta[w] - (weight[w] - 1));
+// #ifdef BCCOMP_DBG
+// 					printf("%lf is added to bc[%d]\n", identical_sets[idx_of_source][0].weight * (delta[w] - weight[w] + identical_sets[idv_of_w][i].weight), identical_sets[idv_of_w][i].id+1);
+// 					printf("%lf is added to bc[%d]\n", identical_sets[idx_of_source][0].weight * (delta[w] -
+// 							weight[w] - 1), identical_sets[idv_of_w][i].id+1);
+// #endif
+// 				}
+// 			}
+// 		}
 
-		bc[source] += ((weight[source] - 1)) * (delta[source] - ((weight[source]) - 1));
-#ifdef BCCOMP_DBG
-		printf("%lf is added to bc[%d]\n", ((weight[source] - 1)) * (delta[source] - ((weight[source]) - 1)), source+1);
-#endif
+// 		bc[source] += ((weight[source] - 1)) * (delta[source] - ((weight[source]) - 1));
+// #ifdef BCCOMP_DBG
+// 		printf("%lf is added to bc[%d]\n", ((weight[source] - 1)) * (delta[source] - ((weight[source]) - 1)), source+1);
+// #endif
 
-		for (int i = 2; i < identical_sets_c[idx_of_source]; i++) {
-			bc[identical_sets[idx_of_source][i].id] += ((identical_sets[idx_of_source][i].weight - 1)) *
-					(delta[source] - (weight[source] - 1));
-#ifdef BCCOMP_DBG
-			printf("%lf , come ion, is added to bc[%d]\n", ((identical_sets[idx_of_source][i].weight - 1)) *
-					(delta[source] - (weight[source] - 1)), identical_sets[idx_of_source][i].id+1);
-#endif
-		}
+// 		for (int i = 2; i < identical_sets_c[idx_of_source]; i++) {
+// 			bc[identical_sets[idx_of_source][i].id] += ((identical_sets[idx_of_source][i].weight - 1)) * (delta[source] - (weight[source] - 1));
+// #ifdef BCCOMP_DBG
+// 			printf("%lf , come ion, is added to bc[%d]\n", ((identical_sets[idx_of_source][i].weight - 1)) *
+// 					(delta[source] - (weight[source] - 1)), identical_sets[idx_of_source][i].id+1);
+// #endif
+// 		}
 
 		idv_track[source] = -1;
 		identical_sets_c[idx_of_source] = 0;

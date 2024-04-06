@@ -508,7 +508,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 							if (Try >= THROW_AWAY) {
 								*artp_rem += (tk - tj);
 							}
-							exit(1);
+							// exit(1);
 						}
 #ifdef REDUCTION_STEPS
 						int b = *numof_art_points;
@@ -568,13 +568,14 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 							util::timestamp idv_det1(0,0);
 							util::timestamp idv_det2(0,0);
 							int begin = *numof_removed_edges;
-
+							
 							// TYPE-2 detection and removal, sum of neigs and itself is hashed to "hash_size" sized array
+							printf("[Idv_detection_and_merge : type 2]\n");
 							idv_detection_and_merge(2, len, component, reversecomp, (*pxadj),
 									(*padj), nVtx, &idv_sets_size, &one_set_size, &idv_track_size, &next_idvset_id,
 									&idv_track, &identical_sets_c, &identical_sets_sz,
 									&identical_sets, weight, (*bc), &bs, numof_removed_edges, numof_identical_vertices,
-									idv_det2, idv_rem2);
+									idv_det2, idv_rem2, CCs, ff);
 
 
 
@@ -618,11 +619,12 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 #endif
 
 							// TYPE-1 detection and removal, sum of neigs is hashed to hash_size sized array
+							printf("[Idv_detection_and_merge : type 1]\n");
 							idv_detection_and_merge(1, len, component, reversecomp, (*pxadj),
 									(*padj), nVtx, &idv_sets_size, &one_set_size, &idv_track_size, &next_idvset_id,
 									&idv_track, &identical_sets_c, &identical_sets_sz,
 									&identical_sets, weight, (*bc), &bs, numof_removed_edges, numof_identical_vertices,
-									idv_det1, idv_rem1);
+									idv_det1, idv_rem1, CCs, ff);
 							int end = *numof_removed_edges;
 
 #ifdef BCCOMP_DBG
@@ -664,8 +666,10 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 #endif
 							//degree-1 removal
 							if (end > begin) {
+								printf("\t[D1][idv D1]\n");
 								util::timestamp ta;
 								if (!dd) {
+									
 									remove_degree_1s (nVtx, component, reversecomp, &bs, weight, (*pxadj), (*padj),
 											(*ptadj), idv_track, identical_sets_c, identical_sets, (*bc),
 											numof_removed_edges, tmark, tbfsorder, total_weights_of_each_comp,
@@ -676,6 +680,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 									*deg1_rem += (tb - ta);
 									*idv_rem += (tb-ta);
 								}
+								printf("\t[D1][idv D1 done]\n");
 							}
 
 							util::timestamp tk;
@@ -684,6 +689,8 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 								*idv_rem += idv_rem1 + idv_rem2;
 							}
 						}
+
+						// exit(1);
 #ifdef REDUCTION_STEPS
 						int b = *numof_identical_vertices;
 						int d = *numof_removed_edges;
@@ -708,12 +715,14 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 						//把 -1 從 padj(csrE) 中 移除
 						remove_minus_ones_in_graph (nVtx, &num_edges, pxadj, padj);
 
-						//
+
+						//side vertex 
 						if (!dc && (updatedlen > 1)) {
 							util::timestamp tf;
 							int cov_i = 0;
 							vertex* clique_only_v = new vertex [len];
 							memset (clique_only_v, -1, sizeof(vertex) * len);
+							
 							// clique-only detection
 							find_clique_only_vertices (clique_only_v, &cov_i, component, len,(*pxadj),(*padj));
 							util::timestamp tg;
@@ -721,13 +730,16 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 								*clique_det += (tg - tf);
 							}
 
+
+							printf("[Side vertex][remove]\n");
 							double totalw_of_covs = 0;
 							// clique-only vertex removal
 							remove_covs (len, component, cov_i, clique_only_v, reversecomp, &bs, nVtx, weight,
 									(*pxadj), (*padj), bfsorder, endpred, level, sigma, Pred, delta, (*bc),
 									numof_removed_edges, idv_track, identical_sets_c, identical_sets, next_idvset_id,
-									&totalw_of_covs, total_weights_of_each_comp, comp_ids_of_each_v);
+									&totalw_of_covs, total_weights_of_each_comp, comp_ids_of_each_v, CCs, ff);
 //							printf("totalw_of_covs: %lf\n", totalw_of_covs);
+							printf("[Side vertex][remove][done]\n");
 
 							util::timestamp th;
 							if (Try >= THROW_AWAY) {
@@ -926,7 +938,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 					int kernel = select_kernel (start, end, ordered_weight, ordered_cardinality);
 					if (kernel == 0) // no weight, no cardinality
 						compute_bc_base(start, end, ordered_comp, newxadj, newadj, bfsorder,
-								endpred, level, sigma, Pred, delta, (*bc), phase1time, phase2time);
+								endpred, level, sigma, Pred, delta, (*bc), phase1time, phase2time, CCs, ff);
 					else if (kernel == 1) // only weight
 						compute_bc_weight (start, end, ordered_comp, ordered_weight, newxadj,
 								newadj, bfsorder, endpred, level, sigma,

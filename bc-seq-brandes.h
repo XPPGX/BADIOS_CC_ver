@@ -48,6 +48,7 @@ typedef double pathnumber;
 struct idv_info {
 	int id;
 	double weight;
+	double idv_ff;
 };
 
 struct card_info {
@@ -66,7 +67,7 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 		int* idv_track_size, int* next_idvset_id, int** idv_track, int** identical_sets_c, int** identical_sets_sz,
 		idv_info*** identical_sets, double* weight, Betweenness* bc,
 		Bucket* bs, int* numof_removed_edges, int* numof_identical_vertices, util::timestamp& idvdet,
-		util::timestamp& idvrem);
+		util::timestamp& idvrem, double* CCs, double* ff);
 bool equal_vertices(int type, vertex v1, vertex v2, int* xadj, int* adj);
 
 void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* size1, int* size2, int* size4,
@@ -97,13 +98,13 @@ void remove_covs (int len, vertex* component, int cov_i, vertex* clique_only_v, 
 		double* weight, int* xadj, vertex* adj, vertex* bfsorder, int* endpred, int* level, pathnumber* sigma,
 		vertex* Pred, Betweenness* delta, Betweenness* bc, int* numof_removed_edges, int* idv_track,
 		int* identical_sets_c, idv_info** identical_sets, int next_idvset_id, double* totalw_of_covs,
-		double* total_weights_of_each_comp, int* comp_ids_of_each_v);
+		double* total_weights_of_each_comp, int* comp_ids_of_each_v, double* CCs, double* ff);
 
 int compare(const void *p1, const void *p2);
 void bc_comp_for_cov (int source, int nvtx, double* weight, int* xadj,
 		vertex* adj, vertex* bfsorder, int* endpred, int* level, pathnumber* sigma,
 		vertex* Pred, Betweenness* delta, Betweenness* bc, int* idv_track,
-		int* identical_sets_c, idv_info** identical_sets);
+		int* identical_sets_c, idv_info** identical_sets, double* CCs, double* ff);
 int is_part_of_clique (int u, int* xadj, vertex* adj, int clique_neig_num);
 void find_clique_only_vertices (vertex* clique_only_v, int* cov_i, vertex* component, int len, int* xadj, vertex* adj);
 int totalsize (vertex u, int nVtx, vertex* adj, int* xadj);
@@ -131,7 +132,7 @@ void compute_bc_card (int start, int end, vertex*  ordered_comp, vertex*  newxad
 
 void compute_bc_base (int start, int end, vertex* ordered_comp, vertex* newxadj,
 		vertex* newadj, vertex* bfsorder, int* endpred, int* level, pathnumber* sigma,
-		vertex* Pred, Betweenness* delta, Betweenness* bc, util::timestamp& phase1time, util::timestamp& phase2time);
+		vertex* Pred, Betweenness* delta, Betweenness* bc, util::timestamp& phase1time, util::timestamp& phase2time, double* CCs, double* ff);
 
 void bridge_detection (vertex u, int remlen, int nVtx, int* labels, int* nd, int*l, int* h, int* xadj,
 		vertex* adj, vertex* bridges, int* bridges_c);

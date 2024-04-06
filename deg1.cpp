@@ -19,7 +19,7 @@ void remove_degree_1s (int nVtx, vertex* component, vertex* reversecomp, Bucket*
 		int* xadj, vertex* adj, vertex *tadj, int* idv_track, int* identical_sets_c, idv_info** identical_sets,
 		Betweenness* bc, int* numof_removed_edges, int* tmark, int *tbfsorder, double* total_weights_of_each_comp,
 		int* comp_ids_of_each_v, double* CCs, double* ff) {
-
+	
 	double totalremw, total_w_of_comp;
 	int count = 0;
 	while(1) {
@@ -134,9 +134,7 @@ void remove_degree_1s (int nVtx, vertex* component, vertex* reversecomp, Bucket*
 #endif
 			}
 
-			#pragma region CC
-			ff[identical_sets[idx_of_v][0].id] += ff[identical_sets[idx_of_u][0].id] + identical_sets[idx_of_u][0].weight;
-			#pragma endregion //CC 
+			
 
 
 			for (int i = 1; i < identical_sets_c[idx_of_v]; i++) {
@@ -149,6 +147,12 @@ void remove_degree_1s (int nVtx, vertex* component, vertex* reversecomp, Bucket*
 				// reflect..
 				weight[identical_sets[idx_of_v][i].id] += tobe_added;
 			}
+
+			#pragma region CC
+			ff[identical_sets[idx_of_v][0].id] += ff[identical_sets[idx_of_u][0].id] + identical_sets[idx_of_u][0].weight;
+			identical_sets[idx_of_u][0].idv_ff += ff[identical_sets[idx_of_u][0].id] + identical_sets[idx_of_u][0].weight;
+			#pragma endregion //CC 
+			
 			identical_sets[idx_of_v][0].weight += identical_sets[idx_of_u][0].weight;
 #ifdef BCCOMP_DBG
 			printf("total weight of idv set of %d becomes %lf\n", identical_sets[idx_of_v][0].id+1,
@@ -263,7 +267,7 @@ void remove_degree_1s (int nVtx, vertex* component, vertex* reversecomp, Bucket*
 			#pragma region CC
 			//只要 ff 跟 weight，bc的都可以不要
 			ff[identical_sets[idx_of_v][0].id] += ff[realu] + weight[realu];
-
+			identical_sets[idx_of_v][0].idv_ff += ff[realu] + weight[realu];
 			#pragma endregion //CC
 
 			//             weight[identical_sets[idx_of_v][1].id] = identical_sets[idx_of_v][1].weight;

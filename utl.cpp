@@ -88,10 +88,6 @@ void assign_component_ids (int cid, vertex v, vertex u, int* componentid, vertex
 
 	#pragma region CC
 	
-	// for(int i = 121421 ; i < nVtx ; i ++){
-	// 	printf("ff[%d] = %f\n", i, ff[i]);
-	// }
-
 	memset(dist_arr, -1, sizeof(int) * nVtx);
 	for(myindex j = xadj[u] ; j < xadj[u + 1] ; j++){
 		vertex y = adj[j];
@@ -145,9 +141,7 @@ void assign_component_ids (int cid, vertex v, vertex u, int* componentid, vertex
 		}
 		cur++;
 	}
-	if((cid + 1) == 121446){
-		printf("comp_dist_from_u[%d] = %f\n", cid + 1, comp_dist_from_u[cid + 1]);
-	}
+
 	// exit(1);
 	delete[] bfsorder;
 	delete[] mark;

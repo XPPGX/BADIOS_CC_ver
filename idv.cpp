@@ -20,7 +20,7 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 		int* idv_track_size, int* next_idvset_id, int** idv_track, int** identical_sets_c, int** identical_sets_sz,
 		idv_info*** identical_sets, double* weight, Betweenness* bc,
 		Bucket* bs, int* numof_removed_edges, int* numof_identical_vertices,
-		util::timestamp& idvdet, util::timestamp& idvrem) {
+		util::timestamp& idvdet, util::timestamp& idvrem, double* CCs, double* ff) {
 
 	
 	/**
@@ -108,6 +108,8 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 				if ((v1 != -1) && ((*idv_track)[v1] != -1)) { // 如果 v1 是 identical vertex representative
 					int neig_num = 0;// used in bc calculation below
 					for (myindex k = xadj[v1]; k < xadj[v1+1]; k++) {
+						
+						//計數 neighbor 的 數量，如果neighbor是idv，則一次就會加一堆
 						int vtx_k = adj[k];
 						if (vtx_k != -1) {
 							
@@ -119,6 +121,7 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 						}
 					}
 
+					//idx_of_v1 : 是 identical set 的 id，不是 node ID
 					int idx_of_v1 = (*idv_track)[v1];
 					for (int k = 0; k < neigsums[i].size(); k++) {
 						int v2 = neigsums[i][k];
@@ -131,9 +134,16 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 							int idx_of_v2 = (*idv_track)[v2];
 							bool is_v2_idv = (idx_of_v2 == -1) ? false : true;
 							
-							//new_weight : 準備要被壓掉的weight就記錄在這裡
+							//new_weight : 準備要被壓掉的 weight 就記錄在這裡
 
 							double new_weight;
+							
+							#pragma region CC
+							
+							//new_ff : 準備要被壓掉的 ff 就記錄在這裡
+							double new_ff;
+
+							#pragma endregion //CC
 							
 							/**
 							 * [BC update] 因為identical vertex而更新
@@ -224,10 +234,14 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 
 								//把identical_set[idx_of_v2]的每一個 node 的 id, weight 都搬到 identical_sets[idx_of_v1]的末端
 								for (int l = 1; l < (*identical_sets_c)[idx_of_v2]; l++) {
-									(*identical_sets)[idx_of_v1][(*identical_sets_c)[idx_of_v1]].id =
-											(*identical_sets)[idx_of_v2][l].id;
-									(*identical_sets)[idx_of_v1][(*identical_sets_c)[idx_of_v1]++].weight =
-											(*identical_sets)[idx_of_v2][l].weight;
+									(*identical_sets)[idx_of_v1][(*identical_sets_c)[idx_of_v1]].id = (*identical_sets)[idx_of_v2][l].id;
+									
+									#pragma region CC
+									(*identical_sets)[idx_of_v1][(*identical_sets_c)[idx_of_v1]].idv_ff = (*identical_sets)[idx_of_v2][l].idv_ff;
+									#pragma endregion //CC
+
+									(*identical_sets)[idx_of_v1][(*identical_sets_c)[idx_of_v1]++].weight = (*identical_sets)[idx_of_v2][l].weight;
+
 								}
 
 								/**
@@ -240,6 +254,11 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 								// cancel idv_track
 								(*idv_track)[v2] = -1;
 								new_weight = (*identical_sets)[idx_of_v2][0].weight;
+								
+								#pragma region CC
+								new_ff = (*identical_sets)[idx_of_v2][0].idv_ff;
+								#pragma endregion //CC
+
 							}
 							else {
 								// update C is moved here, since it must be added when idv created
@@ -287,8 +306,17 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 								}
 
 								(*identical_sets)[idx_of_v1][(*identical_sets_c)[idx_of_v1]].id = v2;
+								
+								#pragma region CC
+								(*identical_sets)[idx_of_v1][(*identical_sets_c)[idx_of_v1]].idv_ff = ff[v2];
+								#pragma endregion //CC
+								
 								(*identical_sets)[idx_of_v1][(*identical_sets_c)[idx_of_v1]++].weight = weight[v2];
 								new_weight = weight[v2];
+
+								#pragma region CC
+								new_ff = ff[v2];
+								#pragma endregion //CC
 							}
 
 							neigsums[i][k] = -1; // removed from neigsums list
@@ -333,6 +361,17 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 							*/
 							// total weight is updated
 							(*identical_sets)[idx_of_v1][0].weight += new_weight;
+
+							#pragma region CC
+
+							if(type == 1){
+								(*identical_sets)[idx_of_v1][0].idv_ff += new_ff + 2 * new_weight;
+							}
+							else{ //type == 2
+								(*identical_sets)[idx_of_v1][0].idv_ff += new_ff + new_weight;
+							}
+
+							#pragma endregion //CC
 
 							// REMOVE v2 and its adj edges from the graph
 							int rev_v2 = reversecomp[v2];
@@ -393,7 +432,7 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 							/**
 							 * [Note]
 							 * (*next_idvset_id) : 最新的idvset_id
-							 * (*idv_track)[v1] : v1 所在的 identical set 的 id
+							 * (*idv_track)[v1] : v1 所在的 identical set 的 id，這個 id 不是 真實的 nodeID 而是從 0 開始的 setID
 							*/
 							if (!already_added) {
 								(*idv_track)[v1] = (*next_idvset_id)++;
@@ -430,15 +469,31 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 								 * 
 								 * (*identical_sets)[idx_of_v1][1].id		: 紀錄 identical sets 的代表點ID
 								 * (*identical_sets)[idx_of_v1][1].weight	: 紀錄 identical node 的 weight
+								 * 
+								 * (*idnetical_sets)[idx_of_v1][2].id		: 紀錄被吃進此 identical sets 的 第一個 nodeID
+								 * (*identical_sets)[idx_of_v1][2].weight	: 紀錄被吃進來的 第一個 node 的 weight
 								*/
 								int index = (*identical_sets_c)[idx_of_v1]; //如果是新創的 idv_set, 那 (*identical_sets_c)[idx_of_v1] 會是 0
 								(*identical_sets)[idx_of_v1][index].id = v1;
 								(*identical_sets)[idx_of_v1][index].weight = weight[v1];
+								
+								#pragma region CC
+								(*identical_sets)[idx_of_v1][index].idv_ff = ff[v1];
+								#pragma endregion //CC
+								
 								(*identical_sets_c)[idx_of_v1]++;
+
+
+								////////////////////////////////////////////////////////////
 
 								index = (*identical_sets_c)[idx_of_v1];
 								(*identical_sets)[idx_of_v1][index].id = v1;
 								(*identical_sets)[idx_of_v1][index].weight = weight[v1];
+
+								#pragma region CC
+								(*identical_sets)[idx_of_v1][index].idv_ff = ff[v1];
+								#pragma endregion //CC
+
 								(*identical_sets_c)[idx_of_v1]++;
 
 								already_added = true;
@@ -485,11 +540,25 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 
 
 							(*identical_sets)[idx_of_v1][(*identical_sets_c)[idx_of_v1]].id = v2;
+							
+							#pragma region CC
+							
+							(*identical_sets)[idx_of_v1][(*identical_sets_c)[idx_of_v1]].idv_ff = ff[v2];
+
+							#pragma endregion //CC
+
 							(*identical_sets)[idx_of_v1][(*identical_sets_c)[idx_of_v1]++].weight = weight[v2];
+
+							
+
+
+
 
 							neigsums[i][k] = -1; //removed from neigsums list
 							// adjust bc's of neig's of idvs if it's TYPE-1
 							if (type == 1) {
+								
+								//這裡的內容可以整個註解掉，之後再改成 CC的版本
 								double new_weight = weight[v2];
 								double existing_weight = (*identical_sets)[idx_of_v1][0].weight;
 								double total_weight = new_weight + existing_weight;
@@ -518,6 +587,18 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 							}
 							// total weight is updated
 							(*identical_sets)[idx_of_v1][0].weight += weight[v2]; // total weight is updated
+							
+							#pragma region CC
+
+							if(type == 1){
+								(*identical_sets)[idx_of_v1][0].idv_ff += ff[v2] + 2 * weight[v2];
+							}
+							else{ //type == 2
+								(*identical_sets)[idx_of_v1][0].idv_ff += ff[v2] + weight[v2];
+							}
+							
+							#pragma endregion //CC
+
 							// REMOVE v2 and its adj edges from the graph
 							int rev_v2 = reversecomp[v2];
 							// edge removals
@@ -549,7 +630,6 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 			}
 		}
 	}
-
 	for (int i = 0; i < hash_size; i++)
 		neigsums[i].clear();
 	neigsums.clear();

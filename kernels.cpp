@@ -460,7 +460,7 @@ void compute_bc_card (int start, int end, vertex*  ordered_comp, vertex*  newxad
 
 void compute_bc_base (int start, int end, vertex* ordered_comp, vertex* newxadj,
 		vertex* newadj, vertex* bfsorder, int* endpred, int* level, pathnumber* sigma,
-		vertex* Pred, Betweenness* delta, Betweenness* bc, util::timestamp& phase1time, util::timestamp& phase2time) {
+		vertex* Pred, Betweenness* delta, Betweenness* bc, util::timestamp& phase1time, util::timestamp& phase2time, double* CCs, double* ff) {
 
 	char *p1 = (char*) &phase1time;
 	char *p2 = (char*) &phase2time;
@@ -474,16 +474,16 @@ void compute_bc_base (int start, int end, vertex* ordered_comp, vertex* newxadj,
 		int endofbfsorder = 1;
 		bfsorder[0] = source;
 
-		for (int i = start; i < end; i++)
-			endpred[i - start] = newxadj[i];
+		// for (int i = start; i < end; i++)
+		// 	endpred[i - start] = newxadj[i];
 
 		for (int i = 0; i < len; i++)
 			level[i] = -2;
 		level[source] = 0;
 
-		for (int i = 0; i < len; i++)
-			sigma[i] = 0;
-		sigma[source] = 1;
+		// for (int i = 0; i < len; i++)
+		// 	sigma[i] = 0;
+		// sigma[source] = 1;
 
 		//step 1: build shortest path graph
 		int cur = 0;
@@ -495,31 +495,32 @@ void compute_bc_base (int start, int end, vertex* ordered_comp, vertex* newxadj,
 				if (level[w] < 0) {
 					level[w] = level[v]+1;
 					bfsorder[endofbfsorder++] = w;
+					CCs[source] += ff[w] + level[w];
 				}
-				if (level[w] == level[v]+1) {
-					sigma[w] += sigma[v];
-				}
-				else if (level[w] == level[v] - 1) {
-					Pred[endpred[v]++] = w;
-				}
+				// if (level[w] == level[v]+1) {
+				// 	sigma[w] += sigma[v];
+				// }
+				// else if (level[w] == level[v] - 1) {
+				// 	Pred[endpred[v]++] = w;
+				// }
 			}
 			cur++;
 		}
 
-		for (int i = 0; i <  len; i++) {
-			delta[i] = 0.;
-		}
+		// for (int i = 0; i <  len; i++) {
+		// 	delta[i] = 0.;
+		// }
 
 		//step 2: compute betweenness
 		util::timestamp t2;
-		for (int i = endofbfsorder - 1; i > 0; i--) {
-			vertex w = bfsorder[i];
-			for (int j = newxadj[w + start]; j < endpred[w]; j++) {
-				vertex v = Pred[j];
-				delta[v] += sigma[v] * (1 + delta[w])/sigma[w];
-			}
-			bc[ordered_comp[start + w]] += delta[w];
-		}
+		// for (int i = endofbfsorder - 1; i > 0; i--) {
+		// 	vertex w = bfsorder[i];
+		// 	for (int j = newxadj[w + start]; j < endpred[w]; j++) {
+		// 		vertex v = Pred[j];
+		// 		delta[v] += sigma[v] * (1 + delta[w])/sigma[w];
+		// 	}
+		// 	bc[ordered_comp[start + w]] += delta[w];
+		// }
 		util::timestamp t3;
 		*phase1 += (t2-t1);
 		*phase2 += (t3-t2);

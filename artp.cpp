@@ -74,7 +74,7 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 		*/
 
 
-		printf("\t[AP : assign_component_ids]\n");
+		// printf("\t[AP : assign_component_ids]\n");
 		#pragma region CC
 		//comp_dist_from_u 的 index 索引方式 : cid + 1 就是 cid 對應的 comp_dist_from_u
 		/**
@@ -94,14 +94,16 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 			}
 		}
 		free(dist_arr);
-		printf("\t[AP : assign_component_ids][Done]\n");
+		// printf("\t[AP : assign_component_ids][Done]\n");
 		/**
 		 * 取得 u 所在的 component 對 u 的 ff
 		 * 之後要取得在comp[i] 的AP分身 看外面所有的ff，只要用 total_comp_dist_from_u - comp_dist_from_u[i]就好，
 		*/
 		//
+		
 		double total_comp_dist_from_u = 0;
 		for(int i = 0 ; i < cid + 1 ; i ++){
+			// printf("comp_dist_from_u[%d] = %f\n", i, comp_dist_from_u[i]);
 			total_comp_dist_from_u += comp_dist_from_u[i];
 		}
 		// printf("total_comp_dist_from_u = %f\n", total_comp_dist_from_u);
@@ -188,7 +190,7 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 		//myre_allocations for used arrays, if needed of course
 		#pragma region CC
 
-		printf("\t[AP][CC, ff realloc]\n");
+		// printf("\t[AP][CC, ff realloc]\n");
 		*CCs = (double*)myre_alloc(*CCs, sizeof(double) * (*nVtx));
 		*ff = (double*)myre_alloc(*ff, sizeof(double) * (*nVtx));
 		for(int i = startnextvid ; i < endnextvid ; i ++){
@@ -196,7 +198,7 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 			(*ff)[i] = 0;
 			// printf("CC[%d] = %f, ff[%d] = %f\n", i, CCs[i], i, ff[i]);
 		}
-		printf("\t[AP][CC, ff realloc][Done]\n");
+		// printf("\t[AP][CC, ff realloc][Done]\n");
 		
 		#pragma endregion //CC
 
@@ -350,9 +352,14 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 		/**
 		 * 對每個新的 AP 分身，以 AP分身 當 source 進行 BFS traverse 取得該 AP分身 所在的 component 的 weight
 		 * 並加總到 old_comp_weight
+		 * 
+		 * @brief
+		 * comp_
+		 * 
 		*/
 		
-		
+		//comp_du_index : component dist from u index
+		int comp_du_index = 1;
 		for (int i = startnextvid; i < endnextvid; i++) {
 			if (art_track[i - initnVtx] == u) {
 
@@ -399,10 +406,12 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 
 				#pragma region CC
 				
-				(*ff)[i] += (*ff)[u] + (total_comp_dist_from_u - comp_dist_from_u[i]);
+				//不該用 i 去索引 comp_dist_from_u，應該用別的
+				(*ff)[i] += (*ff)[u] + (total_comp_dist_from_u - comp_dist_from_u[comp_du_index]);
+				comp_du_index ++;
 				if(std::isnan((*ff)[i])){
-					printf("new ff[%d] = %f, ff[u] = %f, total_comp_dist_from_u = %f, comp_dist_from_u[%d] = %f\n", i, (*ff)[i], (*ff)[u], total_comp_dist_from_u, i, comp_dist_from_u[u]);
-					// exit(1);
+					printf("new ff[%d] = %f, ff[u] = %f, total_comp_dist_from_u = %f, comp_dist_from_u[%d] = %f\n", i, (*ff)[i], (*ff)[u], total_comp_dist_from_u, i, comp_dist_from_u[comp_du_index]);
+					exit(1);
 				}
 				#pragma endregion //CC
 				
@@ -410,6 +419,9 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 				old_comp_weight += i_weight;
 			}
 		}
+		//AP本尊 u 的 ff 要加上除了自己以外，外部的所有ff。
+		(*ff)[u] += total_comp_dist_from_u - comp_dist_from_u[0];
+		// printf("ff[%d] = %f\n", u, (*ff)[u]);
 
 		/**
 		 * 到這裡為止
@@ -433,7 +445,6 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 			//讓 AP本尊 (u) 紀錄他代表外部的多少點
 			weight[u] += old_comp_weight - u_weight;
 		}
-
 
 
 		/**
@@ -527,7 +538,7 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 	free(componentid);
 	free(newoldneigs);
 	Zoltan_Bucket_Free(bs);
-
+	
 #ifdef BCCOMP_DBG
 	// Graph Check : to be removed
 	for (int i = 0; i < *nVtx; i++) {

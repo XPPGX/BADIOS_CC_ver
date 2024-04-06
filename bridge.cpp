@@ -252,11 +252,13 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 
 				#pragma region CC
 
-				double temp_u_ff = ff[u];
-				double temp_v_ff = ff[v];
+				double temp_u_ff = identical_sets[idx_of_u][0].idv_ff;
+				double temp_v_ff = identical_sets[idx_of_v][0].idv_ff;
 
 				ff[u] += temp_v_ff + comp_dist_from_v + wv;
+				identical_sets[idx_of_u][0].idv_ff += temp_v_ff + comp_dist_from_v + wv;
 				ff[v] += temp_u_ff + comp_dist_from_u + wu;
+				identical_sets[idx_of_v][0].idv_ff += temp_u_ff + comp_dist_from_u + wu;
 
 				#pragma endregion //CC
 
@@ -316,10 +318,12 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 
 				#pragma region CC
 
-				double temp_u_ff = ff[u];
+				double temp_u_ff = identical_sets[idx_of_u][0].idv_ff;
 				double temp_v_ff = ff[v];
 
 				ff[u] += temp_v_ff + comp_dist_from_v + wv;
+				identical_sets[idx_of_u][0].idv_ff += temp_v_ff + comp_dist_from_v + wv;
+
 				ff[v] += temp_u_ff + comp_dist_from_u + wu;
 
 				#pragma endregion //CC
@@ -368,10 +372,12 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 				#pragma region CC
 
 				double temp_u_ff = ff[u];
-				double temp_v_ff = ff[v];
+				double temp_v_ff = identical_sets[idx_of_v][0].idv_ff;
 				
 				ff[u] += temp_v_ff + comp_dist_from_v + wv;
+				
 				ff[v] += temp_u_ff + comp_dist_from_u + wu;
+				identical_sets[idx_of_v][0].idv_ff += temp_u_ff + comp_dist_from_u + wu;
 
 				#pragma endregion //CC
 
