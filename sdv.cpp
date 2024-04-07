@@ -33,18 +33,18 @@ void remove_covs (int len, vertex* component, int cov_i, vertex* clique_only_v, 
 	 * next_idvset	: 總共有多少個 idvset
 	*/
 	// Temp giving back
-	for (int i = 0; i < next_idvset_id; i++) {
-		if (identical_sets_c[i] > 0) {
-			Betweenness bc_of_idv_repr = bc[identical_sets[i][1].id];
-			for (int j = 2; j < identical_sets_c[i]; j++) {
-				bc[identical_sets[i][j].id] += bc_of_idv_repr;
-#ifdef BCCOMP_DBG
-				printf("%lf is added back to bc[%d] from bc[%d], at temp give back\n",
-						bc_of_idv_repr, identical_sets[i][j].id+1, identical_sets[i][1].id+1);
-#endif
-			}
-		}
-	}
+// 	for (int i = 0; i < next_idvset_id; i++) {
+// 		if (identical_sets_c[i] > 0) {
+// 			Betweenness bc_of_idv_repr = bc[identical_sets[i][1].id];
+// 			for (int j = 2; j < identical_sets_c[i]; j++) {
+// 				bc[identical_sets[i][j].id] += bc_of_idv_repr;
+// #ifdef BCCOMP_DBG
+// 				printf("%lf is added back to bc[%d] from bc[%d], at temp give back\n",
+// 						bc_of_idv_repr, identical_sets[i][j].id+1, identical_sets[i][1].id+1);
+// #endif
+// 			}
+// 		}
+// 	}
 
 
 	/**
@@ -103,18 +103,18 @@ void remove_covs (int len, vertex* component, int cov_i, vertex* clique_only_v, 
 	 * 這邊又把剛剛 + 的 BC 扣回去
 	*/
 	// Taking back
-	for (int i = 0; i < next_idvset_id; i++) {
-		if (identical_sets_c[i] > 0) {
-			Betweenness bc_of_idv_repr = bc[identical_sets[i][1].id];
-			for (int j = 2; j < identical_sets_c[i]; j++) {
-				bc[identical_sets[i][j].id] -= bc_of_idv_repr;
-#ifdef BCCOMP_DBG
-				printf("%lf is removed from to bc[%d] (as amount of bc[%d]), at take back\n",
-						bc_of_idv_repr, identical_sets[i][j].id+1, identical_sets[i][1].id+1);
-#endif
-			}
-		}
-	}
+// 	for (int i = 0; i < next_idvset_id; i++) {
+// 		if (identical_sets_c[i] > 0) {
+// 			Betweenness bc_of_idv_repr = bc[identical_sets[i][1].id];
+// 			for (int j = 2; j < identical_sets_c[i]; j++) {
+// 				bc[identical_sets[i][j].id] -= bc_of_idv_repr;
+// #ifdef BCCOMP_DBG
+// 				printf("%lf is removed from to bc[%d] (as amount of bc[%d]), at take back\n",
+// 						bc_of_idv_repr, identical_sets[i][j].id+1, identical_sets[i][1].id+1);
+// #endif
+// 			}
+// 		}
+// 	}
 
 	for (int i = 0; i < len; i++) {
 		int u = component[i];

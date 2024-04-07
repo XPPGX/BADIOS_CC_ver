@@ -93,46 +93,46 @@ void remove_degree_1s (int nVtx, vertex* component, vertex* reversecomp, Bucket*
 		 * if, else if, else if 的 statement 都還沒看是怎麼處理的，等看完idv之後再回來看這裡
 		*/
 		if (is_u_idv && is_v_idv) { //case-c in papers
-			printf("\t[D1 : u_idv, v_idv]\r");
-			double added_to_repr_u = (identical_sets[idx_of_u][1].weight - 1) * (totalremw);
-			bc[identical_sets[idx_of_u][1].id] += added_to_repr_u;
+			// printf("\t[D1 : u_idv, v_idv]\r");
+			// double added_to_repr_u = (identical_sets[idx_of_u][1].weight - 1) * (totalremw);
+			// bc[identical_sets[idx_of_u][1].id] += added_to_repr_u;
 #ifdef BCCOMP_DBG
 			printf("%lf IS ADDED TO BC[%d]\n", added_to_repr_u, identical_sets[idx_of_u][1].id+1);
 #endif
-			for (int i = 2; i < identical_sets_c[idx_of_u]; i++) {
-				int u_id     = identical_sets[idx_of_u][i].id;
-				double u_weight = identical_sets[idx_of_u][i].weight;
-				bc[u_id] += (u_weight - 1) * (totalremw);
-				bc[u_id] -= added_to_repr_u;
-#ifdef BCCOMP_DBG
-				printf("%lf IS ADDED TO BC[%d]\n", ((u_weight - 1) * (totalremw)) - added_to_repr_u, u_id+1);
-#endif
-			}
+// 			for (int i = 2; i < identical_sets_c[idx_of_u]; i++) {
+// 				int u_id     = identical_sets[idx_of_u][i].id;
+// 				double u_weight = identical_sets[idx_of_u][i].weight;
+// 				bc[u_id] += (u_weight - 1) * (totalremw);
+// 				bc[u_id] -= added_to_repr_u;
+// #ifdef BCCOMP_DBG
+// 				printf("%lf IS ADDED TO BC[%d]\n", ((u_weight - 1) * (totalremw)) - added_to_repr_u, u_id+1);
+// #endif
+// 			}
 
-			bc[identical_sets[idx_of_v][1].id] +=
-					(identical_sets[idx_of_u][0].weight * (totalremw - identical_sets[idx_of_v][0].weight)) /
-					(identical_sets_c[idx_of_v] - 1);
+			// bc[identical_sets[idx_of_v][1].id] +=
+			// 		(identical_sets[idx_of_u][0].weight * (totalremw - identical_sets[idx_of_v][0].weight)) /
+			// 		(identical_sets_c[idx_of_v] - 1);
 #ifdef BCCOMP_DBG
 			printf("%lf IS ADDED TO BC[%d]\n",
 					(identical_sets[idx_of_u][0].weight * (totalremw - identical_sets[idx_of_v][0].weight)) /
 					(identical_sets_c[idx_of_v] - 1), identical_sets[idx_of_v][1].id+1);
 #endif
-			bc[identical_sets[idx_of_v][1].id] +=
-					(identical_sets[idx_of_v][1].weight - 1) * identical_sets[idx_of_u][0].weight;
+			// bc[identical_sets[idx_of_v][1].id] +=
+			// 		(identical_sets[idx_of_v][1].weight - 1) * identical_sets[idx_of_u][0].weight;
 #ifdef BCCOMP_DBG
 			printf("%lf IS ADDED TO BC[%d]\n",
 					(identical_sets[idx_of_v][1].weight - 1) * identical_sets[idx_of_u][0].weight,
 					identical_sets[idx_of_v][1].id+1);
 #endif
-			for (int i = 2; i < identical_sets_c[idx_of_v]; i++) {
-				int v_id     = identical_sets[idx_of_v][i].id;
-				double v_weight = identical_sets[idx_of_v][i].weight;
-				bc[v_id] += (v_weight - identical_sets[idx_of_v][1].weight) * identical_sets[idx_of_u][0].weight;
-#ifdef BCCOMP_DBG
-				printf("%lf IS ADDED TO BC[%d]\n", (v_weight - identical_sets[idx_of_v][1].weight) *
-						identical_sets[idx_of_u][0].weight, v_id+1);
-#endif
-			}
+// 			for (int i = 2; i < identical_sets_c[idx_of_v]; i++) {
+// 				int v_id     = identical_sets[idx_of_v][i].id;
+// 				double v_weight = identical_sets[idx_of_v][i].weight;
+// 				bc[v_id] += (v_weight - identical_sets[idx_of_v][1].weight) * identical_sets[idx_of_u][0].weight;
+// #ifdef BCCOMP_DBG
+// 				printf("%lf IS ADDED TO BC[%d]\n", (v_weight - identical_sets[idx_of_v][1].weight) *
+// 						identical_sets[idx_of_u][0].weight, v_id+1);
+// #endif
+// 			}
 
 			
 
@@ -160,15 +160,15 @@ void remove_degree_1s (int nVtx, vertex* component, vertex* reversecomp, Bucket*
 #endif
 
 			// cancel the idv set list of u, so first add bc's of idv deps back..
-			for (int i = 2; i < identical_sets_c[idx_of_u]; i++) {
-				bc[identical_sets[idx_of_u][i].id] += bc[identical_sets[idx_of_u][1].id];
-#ifdef BCCOMP_DBG
-				printf("%lf (coming from bc of %d) is added to bc of %d and so bc[%d]: %lf\n",
-						bc[identical_sets[idx_of_u][1].id], identical_sets[idx_of_u][1].id+1,
-						identical_sets[idx_of_u][i].id+1,
-						identical_sets[idx_of_u][i].id+1, bc[identical_sets[idx_of_u][i].id]);
-#endif
-			}
+// 			for (int i = 2; i < identical_sets_c[idx_of_u]; i++) {
+// 				bc[identical_sets[idx_of_u][i].id] += bc[identical_sets[idx_of_u][1].id];
+// #ifdef BCCOMP_DBG
+// 				printf("%lf (coming from bc of %d) is added to bc of %d and so bc[%d]: %lf\n",
+// 						bc[identical_sets[idx_of_u][1].id], identical_sets[idx_of_u][1].id+1,
+// 						identical_sets[idx_of_u][i].id+1,
+// 						identical_sets[idx_of_u][i].id+1, bc[identical_sets[idx_of_u][i].id]);
+// #endif
+// 			}
 
 			identical_sets_c[idx_of_u] = 0;
 			identical_sets[idx_of_u][0].id = -1;
@@ -181,33 +181,33 @@ void remove_degree_1s (int nVtx, vertex* component, vertex* reversecomp, Bucket*
 
 		}
 		else if (is_u_idv && !is_v_idv) { //case-a in papers
-			printf("\t[D1 : u_idv, v_nidv]\r");
-			bc[v] += identical_sets[idx_of_u][0].weight * (totalremw - 1);
+			// printf("\t[D1 : u_idv, v_nidv]\r");
+			// bc[v] += identical_sets[idx_of_u][0].weight * (totalremw - 1);
 #ifdef BCCOMP_DBG
 			printf("%lf IS ADDED TO BC[%d]\n", identical_sets[idx_of_u][0].weight * (totalremw - 1), v+1);
 #endif
 
 			// cancel the idv set list of u, so first add bc's of idv deps back..
-			for (int i = 2; i < identical_sets_c[idx_of_u]; i++) {
-				bc[identical_sets[idx_of_u][i].id] += bc[identical_sets[idx_of_u][1].id];
-#ifdef BCCOMP_DBG
-				printf("%lf (coming from bc of %d) is added to bc of %d and so bc[%d]: %lf\n",
-						bc[identical_sets[idx_of_u][1].id], identical_sets[idx_of_u][1].id+1,
-						identical_sets[idx_of_u][i].id+1,
-						identical_sets[idx_of_u][i].id+1, bc[identical_sets[idx_of_u][i].id]);
-#endif
-			}
+// 			for (int i = 2; i < identical_sets_c[idx_of_u]; i++) {
+// 				bc[identical_sets[idx_of_u][i].id] += bc[identical_sets[idx_of_u][1].id];
+// #ifdef BCCOMP_DBG
+// 				printf("%lf (coming from bc of %d) is added to bc of %d and so bc[%d]: %lf\n",
+// 						bc[identical_sets[idx_of_u][1].id], identical_sets[idx_of_u][1].id+1,
+// 						identical_sets[idx_of_u][i].id+1,
+// 						identical_sets[idx_of_u][i].id+1, bc[identical_sets[idx_of_u][i].id]);
+// #endif
+// 			}
 
-			for (int i = 1; i < identical_sets_c[idx_of_u]; i++) {
-				int u_id = identical_sets[idx_of_u][i].id;
-				double u_weight = identical_sets[idx_of_u][i].weight;
-				bc[u_id] += (u_weight - 1) * (totalremw);
-#ifdef BCCOMP_DBG
-				printf("%lf IS ADDED TO BC[%d], BTW u_weight:%lf\n",
-						((u_weight - 1) * (totalremw/* + identical_sets[idx_of_u][0].weight - u_weight*/))
-						/*- added_to_repr*/, u_id+1, u_weight);
-#endif
-			}
+// 			for (int i = 1; i < identical_sets_c[idx_of_u]; i++) {
+// 				int u_id = identical_sets[idx_of_u][i].id;
+// 				double u_weight = identical_sets[idx_of_u][i].weight;
+// 				bc[u_id] += (u_weight - 1) * (totalremw);
+// #ifdef BCCOMP_DBG
+// 				printf("%lf IS ADDED TO BC[%d], BTW u_weight:%lf\n",
+// 						((u_weight - 1) * (totalremw/* + identical_sets[idx_of_u][0].weight - u_weight*/))
+// 						/*- added_to_repr*/, u_id+1, u_weight);
+// #endif
+// 			}
 
 #ifdef BCCOMP_DBG
 			printf("%lf is added to weight[%d]\n", identical_sets[idx_of_u][0].weight, v+1);
@@ -230,30 +230,30 @@ void remove_degree_1s (int nVtx, vertex* component, vertex* reversecomp, Bucket*
 #endif
 		}
 		else if (!is_u_idv && is_v_idv) { //case-b in papers
-			printf("\t[D1 : u_nidv, v_idv]\r");
-			bc[realu] += (weight[realu] - 1) * (totalremw);
+			// printf("\t[D1 : u_nidv, v_idv]\r");
+			// bc[realu] += (weight[realu] - 1) * (totalremw);
 #ifdef BCCOMP_DBG
 			printf("%lf IS ADDED TO BC[%d]\n", (weight[realu] - 1) * (totalremw), realu+1);
 #endif
-			bc[identical_sets[idx_of_v][1].id] += weight[realu] * (identical_sets[idx_of_v][1].weight - 1);
+			// bc[identical_sets[idx_of_v][1].id] += weight[realu] * (identical_sets[idx_of_v][1].weight - 1);
 #ifdef BCCOMP_DBG
 			printf("%lf IS ADDED TO BC[%d]\n", weight[realu] * (identical_sets[idx_of_v][1].weight - 1),
 					identical_sets[idx_of_v][1].id + 1);
 #endif
-			bc[identical_sets[idx_of_v][1].id] += (weight[realu] * (totalremw - identical_sets[idx_of_v][0].weight)) /
-					(identical_sets_c[idx_of_v] - 1);
+			// bc[identical_sets[idx_of_v][1].id] += (weight[realu] * (totalremw - identical_sets[idx_of_v][0].weight)) /
+			// 		(identical_sets_c[idx_of_v] - 1);
 #ifdef BCCOMP_DBG
 			printf("%lf IS ADDED TO BC[%d]\n", (weight[realu] * (totalremw - identical_sets[idx_of_v][0].weight)) /
 					(identical_sets_c[idx_of_v] - 1), identical_sets[idx_of_v][1].id+1);
 #endif
-			for (int i = 2; i < identical_sets_c[idx_of_v]; i++) {
-				int v_id = identical_sets[idx_of_v][i].id;
-				double v_weight = identical_sets[idx_of_v][i].weight;
-				bc[v_id] += weight[realu] * (v_weight - identical_sets[idx_of_v][1].weight);
-#ifdef BCCOMP_DBG
-				printf("%lf IS ADDED TO BC[%d]\n", weight[realu] * (v_weight - identical_sets[idx_of_v][1].weight), v_id+1);
-#endif
-			}
+// 			for (int i = 2; i < identical_sets_c[idx_of_v]; i++) {
+// 				int v_id = identical_sets[idx_of_v][i].id;
+// 				double v_weight = identical_sets[idx_of_v][i].weight;
+// 				bc[v_id] += weight[realu] * (v_weight - identical_sets[idx_of_v][1].weight);
+// #ifdef BCCOMP_DBG
+// 				printf("%lf IS ADDED TO BC[%d]\n", weight[realu] * (v_weight - identical_sets[idx_of_v][1].weight), v_id+1);
+// #endif
+// 			}
 			for (int i = 1; i < identical_sets_c[idx_of_v]; i++) {
 				double tobe_added = weight[realu] / (identical_sets_c[idx_of_v] - 1);
 #ifdef BCCOMP_DBG
@@ -278,12 +278,12 @@ void remove_degree_1s (int nVtx, vertex* component, vertex* reversecomp, Bucket*
 #endif
 		}
 		else { //usual case
-			printf("\t[D1 : usual]\r");
-			bc[realu] += (weight[realu] - 1) * totalremw; // effect of u's dependents on v's component, for bc of u
+			// printf("\t[D1 : usual]\r");
+			// bc[realu] += (weight[realu] - 1) * totalremw; // effect of u's dependents on v's component, for bc of u
 #ifdef BCCOMP_DBG
 			printf("source d1 adds bc[%d]: %lf\n",realu+1, (weight[realu] - 1) * totalremw);
 #endif
-			bc[v] +=  weight[realu] * (totalremw - 1); // effect of u on v's component except v, for bc of v
+			// bc[v] +=  weight[realu] * (totalremw - 1); // effect of u on v's component except v, for bc of v
 #ifdef BCCOMP_DBG
 			printf("source d1 adds bc[%d]: %lf\n",v+1, weight[realu] * (totalremw - 1));
 #endif

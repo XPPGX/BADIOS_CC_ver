@@ -47,7 +47,7 @@ int select_kernel (int start, int end, double* ordered_weight, card_info* ordere
 void compute_bc_weight_card (int start, int end, vertex*  ordered_comp, double*  ordered_weight, vertex*  newxadj,
 		vertex*  newadj, vertex*  bfsorder, int*  endpred, int*  level, pathnumber*  sigma,
 		vertex*  Pred, Betweenness*  delta, Betweenness*  bc, card_info* ordered_cardinality,
-		util::timestamp& phase1time, util::timestamp& phase2time) {
+		util::timestamp& phase1time, util::timestamp& phase2time, double* CCs) {
 
 	char *p1 = (char*) &phase1time;
 	char *p2 = (char*) &phase2time;
@@ -65,16 +65,16 @@ void compute_bc_weight_card (int start, int end, vertex*  ordered_comp, double* 
 			int endofbfsorder = 1;
 			bfsorder[0] = source;
 
-			for (int i = start; i < end; i++)
-				endpred[i - start] = newxadj[i];
+			// for (int i = start; i < end; i++)
+			// 	endpred[i - start] = newxadj[i];
 
 			for (int i = 0; i < len; i++)
 				level[i] = -2;
 			level[source] = 0;
 
-			for (int i = 0; i < len; i++)
-				sigma[i] = 0;
-			sigma[source] = 1;
+			// for (int i = 0; i < len; i++)
+			// 	sigma[i] = 0;
+			// sigma[source] = 1;
 
 			//step 1: build shortest path graph
 			int cur = 0;
@@ -86,50 +86,56 @@ void compute_bc_weight_card (int start, int end, vertex*  ordered_comp, double* 
 					if (level[w] < 0) {
 						level[w] = level[v]+1;
 						bfsorder[endofbfsorder++] = w;
+						
+						#pragma region CC
+						CCs[source] += ordered_cardinality[start + w].total_ff + level[w] * ordered_cardinality[start + w].total_weight;
+						#pragma endregion //CC
 					}
-					if (level[w] == level[v]+1) {
-						sigma[w] += sigma[v] * (ordered_cardinality[start+v].cardinality);
-					}
-					else if (level[w] == level[v] - 1) {
-						Pred[endpred[v]++] = w;
-					}
+
+					
+					// if (level[w] == level[v]+1) {
+					// 	sigma[w] += sigma[v] * (ordered_cardinality[start+v].cardinality);
+					// }
+					// else if (level[w] == level[v] - 1) {
+					// 	Pred[endpred[v]++] = w;
+					// }
 				}
 				cur++;
 			}
 
-			for (int i = 0; i <  len; i++) {
-				delta[i] = 0.;
-			}
+			// for (int i = 0; i <  len; i++) {
+			// 	delta[i] = 0.;
+			// }
 
-			for (int i = 0; i < len; i++) {
-				delta[i] += (ordered_weight[start + i] - 1); // effect of dependents on real node
-			}
+			// for (int i = 0; i < len; i++) {
+			// 	delta[i] += (ordered_weight[start + i] - 1); // effect of dependents on real node
+			// }
 
 			//step 2: compute betweenness
 			util::timestamp t2;
-			for (int i = endofbfsorder - 1; i > 0; i--) {
-				vertex w = bfsorder[i];
-				if (ordered_cardinality[start + w].cardinality == 1) {
-					for (myindex j = newxadj[w + start]; j < endpred[w]; j++) {
-						vertex v = Pred[j];
-						delta[v] += sigma[v] * (1+delta[w]) / sigma[w];
-					}
-				}
-				else { // phase-2 hack for handling idv vertices
-					for (myindex j = newxadj[w + start]; j < endpred[w]; j++) {
-						vertex v = Pred[j];
-						delta[v] += sigma[v] * ((ordered_cardinality[start + w].cardinality * (delta[w] + 1 - ordered_weight[start + w]))
-								+ ordered_cardinality[start + w].total_weight) / sigma[w];
-					}
-				}
+// 			for (int i = endofbfsorder - 1; i > 0; i--) {
+// 				vertex w = bfsorder[i];
+// 				if (ordered_cardinality[start + w].cardinality == 1) {
+// 					for (myindex j = newxadj[w + start]; j < endpred[w]; j++) {
+// 						vertex v = Pred[j];
+// 						delta[v] += sigma[v] * (1+delta[w]) / sigma[w];
+// 					}
+// 				}
+// 				else { // phase-2 hack for handling idv vertices
+// 					for (myindex j = newxadj[w + start]; j < endpred[w]; j++) {
+// 						vertex v = Pred[j];
+// 						delta[v] += sigma[v] * ((ordered_cardinality[start + w].cardinality * (delta[w] + 1 - ordered_weight[start + w]))
+// 								+ ordered_cardinality[start + w].total_weight) / sigma[w];
+// 					}
+// 				}
 
-				bc[ordered_comp[start + w]] += ordered_weight[start + source] * delta[w]; // effect of source and source's dependents on w
+// 				bc[ordered_comp[start + w]] += ordered_weight[start + source] * delta[w]; // effect of source and source's dependents on w
 
-#ifdef BCCOMP_DBG
-				// printf("source %d adds bc[%d]: %lf\n",ordered_comp[source]+1,ordered_comp[w]+1,ordered_weight[start + source] * delta[w]);
-#endif
+// #ifdef BCCOMP_DBG
+// 				// printf("source %d adds bc[%d]: %lf\n",ordered_comp[source]+1,ordered_comp[w]+1,ordered_weight[start + source] * delta[w]);
+// #endif
 
-			}
+// 			}
 			util::timestamp t3;
 			*phase1 += (t2-t1);
 			*phase2 += (t3-t2);
@@ -139,16 +145,16 @@ void compute_bc_weight_card (int start, int end, vertex*  ordered_comp, double* 
 			int endofbfsorder = 1;
 			bfsorder[0] = source;
 
-			for (int i = start; i < end; i++)
-				endpred[i - start] = newxadj[i];
+			// for (int i = start; i < end; i++)
+			// 	endpred[i - start] = newxadj[i];
 
 			for (int i = 0; i < len; i++)
 				level[i] = -2;
 			level[source] = 0;
 
-			for (int i = 0; i < len; i++)
-				sigma[i] = 0;
-			sigma[source] = 1;
+			// for (int i = 0; i < len; i++)
+			// 	sigma[i] = 0;
+			// sigma[source] = 1;
 
 			//step 1: build shortest path graph
 			int cur = 0;
@@ -160,54 +166,61 @@ void compute_bc_weight_card (int start, int end, vertex*  ordered_comp, double* 
 					if (level[w] < 0) {
 						level[w] = level[v]+1;
 						bfsorder[endofbfsorder++] = w;
+
+						#pragma region CC
+						
+						CCs[source] += ordered_cardinality[start + w].total_ff + level[w] * ordered_cardinality[start + w].total_weight;
+
+						#pragma endregion //CC
 					}
-					if (level[w] == level[v]+1) { // phase-1 hack for handling idv vertices
-						if ((ordered_cardinality[start + v].cardinality > 1) && (v != source)) {
-							sigma[w] += sigma[v] * ordered_cardinality[start + v].cardinality;
-						}
-						else
-							sigma[w] += sigma[v];
-					}
-					else if (level[w] == level[v] - 1) {
-						Pred[endpred[v]++] = w;
-					}
+
+					// if (level[w] == level[v]+1) { // phase-1 hack for handling idv vertices
+					// 	if ((ordered_cardinality[start + v].cardinality > 1) && (v != source)) {
+					// 		sigma[w] += sigma[v] * ordered_cardinality[start + v].cardinality;
+					// 	}
+					// 	else
+					// 		sigma[w] += sigma[v];
+					// }
+					// else if (level[w] == level[v] - 1) {
+					// 	Pred[endpred[v]++] = w;
+					// }
 				}
 				cur++;
 			}
 
-			for (int i = 0; i < len; i++) {
-				delta[i] = 0.;
-			}
+			// for (int i = 0; i < len; i++) {
+			// 	delta[i] = 0.;
+			// }
 
-			for (int i = 0; i < len; i++) {
-				delta[i] += (ordered_weight[start + i] - 1); // effect of dependents on real node
-			}
+			// for (int i = 0; i < len; i++) {
+			// 	delta[i] += (ordered_weight[start + i] - 1); // effect of dependents on real node
+			// }
 
 			//step 2: compute betweenness
 			util::timestamp t2;
-			for (int i = endofbfsorder - 1; i > 0; i--) {
-				vertex w = bfsorder[i];
-				if ((ordered_cardinality[start + w].cardinality > 1) && (w != source)) { // phase-2 hack for handling idv vertices
-					for (myindex j = newxadj[w + start]; j < endpred[w]; j++) {
-						vertex v = Pred[j];
-						delta[v] += sigma[v] * ((ordered_cardinality[start + w].cardinality * (delta[w] + 1 - ordered_weight[start + w]))
-								+ ordered_cardinality[start + w].total_weight) / sigma[w];
-					}
-				}
-				else {
-					for (myindex j = newxadj[w + start]; j < endpred[w]; j++) {
-						vertex v = Pred[j];
-						delta[v] += sigma[v] * (1+delta[w]) / sigma[w];
-					}
-				}
+// 			for (int i = endofbfsorder - 1; i > 0; i--) {
+// 				vertex w = bfsorder[i];
+// 				if ((ordered_cardinality[start + w].cardinality > 1) && (w != source)) { // phase-2 hack for handling idv vertices
+// 					for (myindex j = newxadj[w + start]; j < endpred[w]; j++) {
+// 						vertex v = Pred[j];
+// 						delta[v] += sigma[v] * ((ordered_cardinality[start + w].cardinality * (delta[w] + 1 - ordered_weight[start + w]))
+// 								+ ordered_cardinality[start + w].total_weight) / sigma[w];
+// 					}
+// 				}
+// 				else {
+// 					for (myindex j = newxadj[w + start]; j < endpred[w]; j++) {
+// 						vertex v = Pred[j];
+// 						delta[v] += sigma[v] * (1+delta[w]) / sigma[w];
+// 					}
+// 				}
 
-				// phase-2 hack for handling idv vertices
-				bc[ordered_comp[start + w]] += ordered_cardinality[start + source].total_weight * delta[w]; // effect of source and source's dependents on w
-#ifdef BCCOMP_DBG
-				 printf("source %d adds bc[%d]: %lf\n",ordered_comp[source]+1,ordered_comp[w]+1,ordered_weight[start + source] * delta[w]);
-#endif
+// 				// phase-2 hack for handling idv vertices
+// 				bc[ordered_comp[start + w]] += ordered_cardinality[start + source].total_weight * delta[w]; // effect of source and source's dependents on w
+// #ifdef BCCOMP_DBG
+// 				 printf("source %d adds bc[%d]: %lf\n",ordered_comp[source]+1,ordered_comp[w]+1,ordered_weight[start + source] * delta[w]);
+// #endif
 
-			}
+// 			}
 			util::timestamp t3;
 			*phase1 += (t2-t1);
 			*phase2 += (t3-t2);
@@ -218,7 +231,7 @@ void compute_bc_weight_card (int start, int end, vertex*  ordered_comp, double* 
 
 void compute_bc_weight (int start, int end, vertex* ordered_comp, double* ordered_weight, vertex* newxadj,
 		vertex* newadj, vertex* bfsorder, int* endpred, int* level, pathnumber* sigma,
-		vertex* Pred, Betweenness* delta, Betweenness* bc, util::timestamp& phase1time, util::timestamp& phase2time) {
+		vertex* Pred, Betweenness* delta, Betweenness* bc, util::timestamp& phase1time, util::timestamp& phase2time, double* CCs, card_info* ordered_cardinality) {
 
 	char *p1 = (char*) &phase1time;
 	char *p2 = (char*) &phase2time;
@@ -234,16 +247,16 @@ void compute_bc_weight (int start, int end, vertex* ordered_comp, double* ordere
 		int endofbfsorder = 1;
 		bfsorder[0] = source;
 
-		for (int i = start; i < end; i++)
-			endpred[i - start] = newxadj[i];
+		// for (int i = start; i < end; i++)
+		// 	endpred[i - start] = newxadj[i];
 
 		for (int i = 0; i < len; i++)
 			level[i] = -2;
 		level[source] = 0;
 
-		for (int i = 0; i < len; i++)
-			sigma[i] = 0;
-		sigma[source] = 1;
+		// for (int i = 0; i < len; i++)
+		// 	sigma[i] = 0;
+		// sigma[source] = 1;
 
 		//step 1: build shortest path graph
 		int cur = 0;
@@ -255,41 +268,49 @@ void compute_bc_weight (int start, int end, vertex* ordered_comp, double* ordere
 				if (level[w] < 0) {
 					level[w] = level[v]+1;
 					bfsorder[endofbfsorder++] = w;
+
+					#pragma region CC
+
+					CCs[source] += ordered_cardinality[start + w].total_ff + level[w] * ordered_cardinality[start + w].total_weight;
+
+					#pragma endregion //CC
 				}
-				if (level[w] == level[v]+1) {
-					sigma[w] += sigma[v];
-				}
-				else if (level[w] == level[v] - 1) {
-					Pred[endpred[v]++] = w;
-				}
+
+
+				// if (level[w] == level[v]+1) {
+				// 	sigma[w] += sigma[v];
+				// }
+				// else if (level[w] == level[v] - 1) {
+				// 	Pred[endpred[v]++] = w;
+				// }
 			}
 			cur++;
 		}
 
-		for (int i = 0; i <  len; i++) {
-			delta[i] = 0.;
-		}
+		// for (int i = 0; i <  len; i++) {
+		// 	delta[i] = 0.;
+		// }
 
-		for (int i = 0; i < len; i++) {
-			delta[i] += (ordered_weight[start + i] - 1); // effect of dependents on real node
-		}
+		// for (int i = 0; i < len; i++) {
+		// 	delta[i] += (ordered_weight[start + i] - 1); // effect of dependents on real node
+		// }
 
 		//step 2: compute betweenness
 		util::timestamp t2;
-		for (int i = endofbfsorder - 1; i > 0; i--) {
-			vertex w = bfsorder[i];
-			for (myindex j = newxadj[w + start]; j < endpred[w]; j++) {
-				vertex v = Pred[j];
-				delta[v] += sigma[v] * (1+delta[w]) / sigma[w];
-			}
+// 		for (int i = endofbfsorder - 1; i > 0; i--) {
+// 			vertex w = bfsorder[i];
+// 			for (myindex j = newxadj[w + start]; j < endpred[w]; j++) {
+// 				vertex v = Pred[j];
+// 				delta[v] += sigma[v] * (1+delta[w]) / sigma[w];
+// 			}
 
-			bc[ordered_comp[start + w]] += ordered_weight[start + source] * delta[w]; // effect of source and source's dependents on w
+// 			bc[ordered_comp[start + w]] += ordered_weight[start + source] * delta[w]; // effect of source and source's dependents on w
 
-#ifdef BCCOMP_DBG
-			 printf("source %d adds bc[%d]: %lf\n",ordered_comp[source]+1,ordered_comp[w]+1,ordered_weight[start + source] * delta[w]);
-#endif
+// #ifdef BCCOMP_DBG
+// 			 printf("source %d adds bc[%d]: %lf\n",ordered_comp[source]+1,ordered_comp[w]+1,ordered_weight[start + source] * delta[w]);
+// #endif
 
-		}
+// 		}
 		util::timestamp t3;
 		*phase1 += (t2-t1);
 		*phase2 += (t3-t2);

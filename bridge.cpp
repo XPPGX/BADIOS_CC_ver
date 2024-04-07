@@ -70,10 +70,22 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 			 * total_weight : 計算整個 component 有多少 nodes
 			 * 
 			*/
+			#pragma region CC
+			double* dist_arr = (double*)malloc(sizeof(double) * nVtx);
+			double comp_dist_from_u = 0;
+			double comp_dist_from_v = 0;
+			#pragma endregion //CC
+
 			double wu = 0;
 			double wv = 0;
 			double total_weight = 0;
 			memset (tmark, 0, sizeof(int) * nVtx);
+			
+			#pragma region CC
+			memset(dist_arr, -1, sizeof(double) * nVtx);
+			dist_arr[u] = 0;
+			#pragma endregion //CC
+
 			int endofbfsorder = 1;
 			tbfsorder[0] = u;
 			int cur = 0;
@@ -92,6 +104,8 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 					if ((w != -1) && (tmark[w] == 0)) {
 						tbfsorder[endofbfsorder++] = w;
 						tmark[w] = 1;
+						dist_arr[w] = dist_arr[v] + 1;
+						comp_dist_from_u += dist_arr[w];
 					}
 				}
 				cur++;
@@ -110,13 +124,13 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 			total_weights_of_each_comp[comp_ids_of_each_v[u]] =	total_w_of_comp;  //這是對的，因為每次都要從整張圖一開始的component去看
 			total_weights_of_each_comp[comp_ids_of_each_v[v]] = total_w_of_comp;  //這是對的，因為每次都要從整張圖一開始的component去看
 
-			if(std::isnan(wu) || std::isnan(wu) || std::isnan(total_w_of_comp)){
-				printf("[ERROR] wu = %f, wv = %f, total_weight_of_each_comp = %f\n", wu, wv, total_w_of_comp);
-				exit(1);
-			}
-			else{
-				// printf("cid_u = %d, wu = %f, cid_v = %d, wv = %f, total_weight_of_each_comp = %f\n", comp_ids_of_each_v[u], wu, comp_ids_of_each_v[v], wv, total_w_of_comp);
-			}
+			// if(std::isnan(wu) || std::isnan(wu) || std::isnan(total_w_of_comp)){
+			// 	printf("[ERROR] wu = %f, wv = %f, total_weight_of_each_comp = %f\n", wu, wv, total_w_of_comp);
+			// 	exit(1);
+			// }
+			// else{
+			// 	// printf("cid_u = %d, wu = %f, cid_v = %d, wv = %f, total_weight_of_each_comp = %f\n", comp_ids_of_each_v[u], wu, comp_ids_of_each_v[v], wv, total_w_of_comp);
+			// }
 
 			int idx_of_u = idv_track[u];
 			bool is_u_idv = (idx_of_u == -1) ? false : true;
@@ -134,40 +148,39 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 			 * 而 CC 的 bridge removal 除了要算 weight(代表的nodes個數)，還要算 ff(代表的距離)
 			*/
 
-			double comp_dist_from_u = 0;
-			double comp_dist_from_v = 0;
+			
 
-			double* dist_arr = (double*)malloc(sizeof(double) * nVtx);
+			
 
 			//先取得 comp_dist_from_u
-			memset(tmark, 0, sizeof(int) * nVtx);
-			memset(dist_arr, 0, sizeof(double) * nVtx);
-			endofbfsorder = 1;
-			tbfsorder[0] = u;
-			cur = 0;
-			tmark[u] = 1;
-			dist_arr[u] = 0;
-			while (cur != endofbfsorder) {
-				vertex v = tbfsorder[cur];
+			// memset(tmark, 0, sizeof(int) * nVtx);
+			// memset(dist_arr, 0, sizeof(double) * nVtx);
+			// endofbfsorder = 1;
+			// tbfsorder[0] = u;
+			// cur = 0;
+			// tmark[u] = 1;
+			// dist_arr[u] = 0;
+			// while (cur != endofbfsorder) {
+			// 	vertex v = tbfsorder[cur];
 				
-				for (myindex j = xadj[v]; j < xadj[v + 1]; j++) {
-					vertex w = adj[j];
-					if ((w != -1) && (tmark[w] == 0)) {
-						tbfsorder[endofbfsorder++] = w;
-						tmark[w] = 1;
+			// 	for (myindex j = xadj[v]; j < xadj[v + 1]; j++) {
+			// 		vertex w = adj[j];
+			// 		if ((w != -1) && (tmark[w] == 0)) {
+			// 			tbfsorder[endofbfsorder++] = w;
+			// 			tmark[w] = 1;
 
-						dist_arr[w] = dist_arr[v] + 1;
-						if(idv_track[w] == -1){
-							comp_dist_from_u += dist_arr[w] * weight[w] + ff[w];
-						}
-						else{
-							int idx_of_w = idv_track[w];
-							comp_dist_from_u += dist_arr[w] * identical_sets[idx_of_w][0].weight + ff[w];
-						}
-					}
-				}
-				cur++;
-			}
+			// 			dist_arr[w] = dist_arr[v] + 1;
+			// 			if(idv_track[w] == -1){
+			// 				comp_dist_from_u += dist_arr[w] * weight[w] + ff[w];
+			// 			}
+			// 			else{
+			// 				int idx_of_w = idv_track[w];
+			// 				comp_dist_from_u += dist_arr[w] * identical_sets[idx_of_w][0].weight + ff[w];
+			// 			}
+			// 		}
+			// 	}
+			// 	cur++;
+			// }
 
 			//再取得 comp_dist_from_v
 			memset(tmark, 0, sizeof(int) * nVtx);
@@ -214,40 +227,40 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 			if (is_u_idv && is_v_idv) {
 
 				// bc updates for u's idv set
-				bc[identical_sets[idx_of_u][1].id] += (wv * (wu - identical_sets[idx_of_u][0].weight)) / (identical_sets_c[idx_of_u] - 1);
+				// bc[identical_sets[idx_of_u][1].id] += (wv * (wu - identical_sets[idx_of_u][0].weight)) / (identical_sets_c[idx_of_u] - 1);
 #ifdef BCCOMP_DBG
 				printf("%lf IS ADDED TO BC[%d]\n", (wv * (wu - identical_sets[idx_of_u][0].weight)) / (identical_sets_c[idx_of_u] - 1), identical_sets[idx_of_u][1].id+1);
 #endif
 
-				bc[identical_sets[idx_of_u][1].id] += (identical_sets[idx_of_u][1].weight - 1) * wv;
+				// bc[identical_sets[idx_of_u][1].id] += (identical_sets[idx_of_u][1].weight - 1) * wv;
 #ifdef BCCOMP_DBG
 				printf("%lf IS ADDED TO BC[%d]\n", (identical_sets[idx_of_u][1].weight - 1) * wv, identical_sets[idx_of_u][1].id+1);
 #endif
 
-				for (int i = 2; i < identical_sets_c[idx_of_u]; i++) {
-#ifdef BCCOMP_DBG
-					printf("%lf IS ADDED TO BC[%d]\n", (identical_sets[idx_of_u][i].weight - identical_sets[idx_of_u][1].weight) * wv, identical_sets[idx_of_u][i].id+1);
-#endif
-					bc[identical_sets[idx_of_u][i].id] += (identical_sets[idx_of_u][i].weight - identical_sets[idx_of_u][1].weight) * wv;
-				}
+// 				for (int i = 2; i < identical_sets_c[idx_of_u]; i++) {
+// #ifdef BCCOMP_DBG
+// 					printf("%lf IS ADDED TO BC[%d]\n", (identical_sets[idx_of_u][i].weight - identical_sets[idx_of_u][1].weight) * wv, identical_sets[idx_of_u][i].id+1);
+// #endif
+// 					bc[identical_sets[idx_of_u][i].id] += (identical_sets[idx_of_u][i].weight - identical_sets[idx_of_u][1].weight) * wv;
+// 				}
 
 				// bc updates for v's idv set
-				bc[identical_sets[idx_of_v][1].id] += (wu * (wv - identical_sets[idx_of_v][0].weight)) / (identical_sets_c[idx_of_v] - 1);
+				// bc[identical_sets[idx_of_v][1].id] += (wu * (wv - identical_sets[idx_of_v][0].weight)) / (identical_sets_c[idx_of_v] - 1);
 #ifdef BCCOMP_DBG
 				printf("%lf IS ADDED TO BC[%d]\n", (wu * (wv - identical_sets[idx_of_v][0].weight)) / (identical_sets_c[idx_of_v] - 1), identical_sets[idx_of_v][1].id+1);
 #endif
 
-				bc[identical_sets[idx_of_v][1].id] += (identical_sets[idx_of_v][1].weight - 1) * wu;
+				// bc[identical_sets[idx_of_v][1].id] += (identical_sets[idx_of_v][1].weight - 1) * wu;
 #ifdef BCCOMP_DBG
 				printf("%lf IS ADDED TO BC[%d]\n", (identical_sets[idx_of_v][1].weight - 1) * wu, identical_sets[idx_of_v][1].id+1);
 #endif
 
-				for (int i = 2; i < identical_sets_c[idx_of_v]; i++) {
-#ifdef BCCOMP_DBG
-					printf("%lf IS ADDED TO BC[%d]\n", (identical_sets[idx_of_v][i].weight - identical_sets[idx_of_v][1].weight) * wu, identical_sets[idx_of_v][i].id+1);
-#endif
-					bc[identical_sets[idx_of_v][i].id] += (identical_sets[idx_of_v][i].weight - identical_sets[idx_of_v][1].weight) * wu;
-				}
+// 				for (int i = 2; i < identical_sets_c[idx_of_v]; i++) {
+// #ifdef BCCOMP_DBG
+// 					printf("%lf IS ADDED TO BC[%d]\n", (identical_sets[idx_of_v][i].weight - identical_sets[idx_of_v][1].weight) * wu, identical_sets[idx_of_v][i].id+1);
+// #endif
+// 					bc[identical_sets[idx_of_v][i].id] += (identical_sets[idx_of_v][i].weight - identical_sets[idx_of_v][1].weight) * wu;
+// 				}
 
 
 				#pragma region CC
@@ -292,27 +305,27 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 			}
 			else if (is_u_idv && !is_v_idv) {
 
-				bc[v] += wu * (wv - 1);
+				// bc[v] += wu * (wv - 1);
 #ifdef BCCOMP_DBG
 				printf("%lf IS ADDED TO BC[%d]\n", wu * (wv - 1), v+1);
 #endif
 
-				bc[identical_sets[idx_of_u][1].id] += (wv * (wu - identical_sets[idx_of_u][0].weight)) / (identical_sets_c[idx_of_u] - 1);
+				// bc[identical_sets[idx_of_u][1].id] += (wv * (wu - identical_sets[idx_of_u][0].weight)) / (identical_sets_c[idx_of_u] - 1);
 #ifdef BCCOMP_DBG
 				printf("%lf IS ADDED TO BC[%d]\n", (wv * (wu - identical_sets[idx_of_u][0].weight))  / (identical_sets_c[idx_of_u] - 1), identical_sets[idx_of_u][1].id+1);
 #endif
 
-				bc[identical_sets[idx_of_u][1].id] += (identical_sets[idx_of_u][1].weight - 1) * wv;
+				// bc[identical_sets[idx_of_u][1].id] += (identical_sets[idx_of_u][1].weight - 1) * wv;
 #ifdef BCCOMP_DBG
 				printf("%lf IS ADDED TO BC[%d]\n", (identical_sets[idx_of_u][1].weight - 1) * wv, identical_sets[idx_of_u][1].id+1);
 #endif
 
-				for (int i = 2; i < identical_sets_c[idx_of_u]; i++) {
-					bc[identical_sets[idx_of_u][i].id] += (identical_sets[idx_of_u][i].weight - identical_sets[idx_of_u][1].weight) * wv;
-#ifdef BCCOMP_DBG
-					printf("%lf IS ADDED TO BC[%d]\n", (identical_sets[idx_of_u][i].weight - identical_sets[idx_of_u][1].weight) * wv, identical_sets[idx_of_u][i].id+1);
-#endif
-				}
+// 				for (int i = 2; i < identical_sets_c[idx_of_u]; i++) {
+// 					bc[identical_sets[idx_of_u][i].id] += (identical_sets[idx_of_u][i].weight - identical_sets[idx_of_u][1].weight) * wv;
+// #ifdef BCCOMP_DBG
+// 					printf("%lf IS ADDED TO BC[%d]\n", (identical_sets[idx_of_u][i].weight - identical_sets[idx_of_u][1].weight) * wv, identical_sets[idx_of_u][i].id+1);
+// #endif
+// 				}
 
 
 
@@ -344,17 +357,17 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 			}
 			else if (!is_u_idv && is_v_idv) {
 
-				bc[u] += wv * (wu - 1);
+				// bc[u] += wv * (wu - 1);
 #ifdef BCCOMP_DBG
 				printf("%lf IS ADDED TO BC[%d]\n", wv * (wu - 1), u+1);
 #endif
 
-				bc[identical_sets[idx_of_v][1].id] += (identical_sets[idx_of_v][1].weight - 1) * wu;
+				// bc[identical_sets[idx_of_v][1].id] += (identical_sets[idx_of_v][1].weight - 1) * wu;
 #ifdef BCCOMP_DBG
 				printf("%lf IS ADDED TO BC[%d]\n", (identical_sets[idx_of_v][1].weight - 1) * wu, identical_sets[idx_of_v][1].id+1);
 #endif
 
-				bc[identical_sets[idx_of_v][1].id] += (wu * (wv - identical_sets[idx_of_v][0].weight)) / (identical_sets_c[idx_of_v] - 1);
+				// bc[identical_sets[idx_of_v][1].id] += (wu * (wv - identical_sets[idx_of_v][0].weight)) / (identical_sets_c[idx_of_v] - 1);
 #ifdef BCCOMP_DBG
 				printf("%lf IS ADDED TO BC[%d]\n", (wu * (wv - identical_sets[idx_of_v][0].weight)) / (identical_sets_c[idx_of_v] - 1),
 						identical_sets[idx_of_v][1].id+1);
@@ -362,12 +375,12 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 
 
 
-				for (int i = 2; i < identical_sets_c[idx_of_v]; i++) {
-					bc[identical_sets[idx_of_v][i].id] += (identical_sets[idx_of_v][i].weight - identical_sets[idx_of_v][1].weight) * wu;
-#ifdef BCCOMP_DBG
-					printf("%lf IS ADDED TO BC[%d]\n", (identical_sets[idx_of_v][i].weight - identical_sets[idx_of_v][1].weight) * wu, identical_sets[idx_of_v][i].id+1);
-#endif
-				}
+// 				for (int i = 2; i < identical_sets_c[idx_of_v]; i++) {
+// 					bc[identical_sets[idx_of_v][i].id] += (identical_sets[idx_of_v][i].weight - identical_sets[idx_of_v][1].weight) * wu;
+// #ifdef BCCOMP_DBG
+// 					printf("%lf IS ADDED TO BC[%d]\n", (identical_sets[idx_of_v][i].weight - identical_sets[idx_of_v][1].weight) * wu, identical_sets[idx_of_v][i].id+1);
+// #endif
+// 				}
 
 				#pragma region CC
 
@@ -399,11 +412,11 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 			}
 			else {
 
-				bc [u] += (wu - 1) * wv;
+				// bc [u] += (wu - 1) * wv;
 #ifdef BCCOMP_DBG
 				printf("source br adds bc[%d]: %lf\n",u+1,(wu - 1) * wv);
 #endif
-				bc [v] += (wv - 1) * wu;
+				// bc [v] += (wv - 1) * wu;
 #ifdef BCCOMP_DBG
 				printf("source br adds bc[%d]: %lf\n",v+1,(wv - 1) * wu);
 #endif

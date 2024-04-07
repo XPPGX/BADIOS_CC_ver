@@ -316,7 +316,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 #ifdef REDUCTION_STEPS
 						int a = *numof_removed_edges;
 #endif	
-						printf("[D1]\n");
+						// printf("[D1]\n");
 						util::timestamp ta;
 						if (!dd) {
 							remove_degree_1s (nVtx, component, reversecomp, &bs, weight, (*pxadj), (*padj),
@@ -332,7 +332,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 						int b = *numof_removed_edges;
 						printf("at DEG-1 REMOVAL, %d num of edges are removed\n", b-a);
 #endif
-						printf("\n");
+						// printf("\n");
 					}
 
 
@@ -351,7 +351,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 #ifdef DEBUG
 						graph_check((*pxadj), (*padj), nVtx);
 #endif
-						printf("[Bridge]\n");
+						// printf("[Bridge]\n");
 						if (!db && (updatedlen > 1)) {
 							util::timestamp tc;
 							bridges_c = 0;
@@ -377,7 +377,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 						int b = *numof_removed_edges;
 						printf("at BRIDGE REMOVAL, %d num of edges are removed\n", b-a);
 #endif
-						printf("\n");
+						// printf("\n");
 						// exit(1);
 					}
 
@@ -402,7 +402,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 						int c = *numof_newly_created_vertices;
 						int e = *numof_removed_edges;
 #endif		
-						printf("[AP]\n");
+						// printf("[AP]\n");
 						updatedlen = 0;
 						for (int i = 0; i < len; i++) {
 							if (component[i] != -1)
@@ -426,7 +426,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 							articulation_point_detection_multiple_cc (updatedlen, nVtx, art_points, &artc, stack, dfn, l,
 									parent, already_art, mark__comp, component, (*padj), (*pxadj));
 							
-							printf("[AP : detection][Done]\n");
+							// printf("[AP : detection][Done]\n");
 							*numof_art_points += artc;
 
 							delete[] stack;
@@ -493,7 +493,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 #endif
 								//degree-1 removal
 								{
-									printf("[AP : D1]\n");
+									// printf("[AP : D1]\n");
 									util::timestamp ta;
 									if (!dd) {
 										remove_degree_1s (nVtx, component, reversecomp, &bs, weight, (*pxadj), (*padj),
@@ -575,7 +575,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 							int begin = *numof_removed_edges;
 							
 							// TYPE-2 detection and removal, sum of neigs and itself is hashed to "hash_size" sized array
-							printf("[Idv_detection_and_merge : type 2]\n");
+							// printf("[Idv_detection_and_merge : type 2]\n");
 							idv_detection_and_merge(2, len, component, reversecomp, (*pxadj),
 									(*padj), nVtx, &idv_sets_size, &one_set_size, &idv_track_size, &next_idvset_id,
 									&idv_track, &identical_sets_c, &identical_sets_sz,
@@ -624,7 +624,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 #endif
 
 							// TYPE-1 detection and removal, sum of neigs is hashed to hash_size sized array
-							printf("[Idv_detection_and_merge : type 1]\n");
+							// printf("[Idv_detection_and_merge : type 1]\n");
 							idv_detection_and_merge(1, len, component, reversecomp, (*pxadj),
 									(*padj), nVtx, &idv_sets_size, &one_set_size, &idv_track_size, &next_idvset_id,
 									&idv_track, &identical_sets_c, &identical_sets_sz,
@@ -671,7 +671,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 #endif
 							//degree-1 removal
 							if (end > begin) {
-								printf("\t[D1][idv D1]\n");
+								// printf("\t[D1][idv D1]\n");
 								util::timestamp ta;
 								if (!dd) {
 									
@@ -685,7 +685,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 									*deg1_rem += (tb - ta);
 									*idv_rem += (tb-ta);
 								}
-								printf("\t[D1][idv D1 done]\n");
+								// printf("\t[D1][idv D1 done]\n");
 							}
 
 							util::timestamp tk;
@@ -736,7 +736,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 							}
 
 
-							printf("[Side vertex][remove]\n");
+							// printf("[Side vertex][remove]\n");
 							double totalw_of_covs = 0;
 							// clique-only vertex removal
 							remove_covs (len, component, cov_i, clique_only_v, reversecomp, &bs, nVtx, weight,
@@ -744,7 +744,7 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 									numof_removed_edges, idv_track, identical_sets_c, identical_sets, next_idvset_id,
 									&totalw_of_covs, total_weights_of_each_comp, comp_ids_of_each_v, CCs, ff);
 //							printf("totalw_of_covs: %lf\n", totalw_of_covs);
-							printf("[Side vertex][remove][done]\n");
+							// printf("[Side vertex][remove][done]\n");
 
 							util::timestamp th;
 							if (Try >= THROW_AWAY) {
@@ -946,16 +946,16 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 					if (kernel == 0) // no weight, no cardinality
 						compute_bc_base(start, end, ordered_comp, newxadj, newadj, bfsorder,
 								endpred, level, sigma, Pred, delta, (*bc), phase1time, phase2time, CCs, ff);
-					else if (kernel == 1) // only weight //[Not Done]
+					else if (kernel == 1) // only weight
 						compute_bc_weight (start, end, ordered_comp, ordered_weight, newxadj,
 								newadj, bfsorder, endpred, level, sigma,
-								Pred, delta, (*bc), phase1time, phase2time);
+								Pred, delta, (*bc), phase1time, phase2time, CCs, ordered_cardinality);
 					else if (kernel == 2) // only cardinality
 						compute_bc_card (start, end, ordered_comp, newxadj, newadj, bfsorder, endpred, level, sigma,
 								Pred, delta, (*bc), ordered_cardinality, phase1time, phase2time, CCs);
 					else if (kernel == 3) // weight and cardinality //[Not Done]
 						compute_bc_weight_card(start, end, ordered_comp, ordered_weight, newxadj, newadj, bfsorder,
-								endpred, level, sigma, Pred, delta, (*bc), ordered_cardinality, phase1time, phase2time);
+								endpred, level, sigma, Pred, delta, (*bc), ordered_cardinality, phase1time, phase2time, CCs);
 				}
 			}
 		}
@@ -985,44 +985,44 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 		 * 
 		 * 下面這個 for 迴圈 是把每個 component 的 total weight 算好
 		*/
-		for (int i = 0; i < next_idvset_id; i++) {
-			if (identical_sets_c[i] > 0) {
-				double total_weight = 0;
+		// for (int i = 0; i < next_idvset_id; i++) {
+		// 	if (identical_sets_c[i] > 0) {
+		// 		double total_weight = 0;
 
-				// u 是這個 identical set 還在 graph 裡面的 node，其他的 identical node 都被壓掉了
-				vertex u = identical_sets[i][1].id;
+		// 		// u 是這個 identical set 還在 graph 裡面的 node，其他的 identical node 都被壓掉了
+		// 		vertex u = identical_sets[i][1].id;
 
-				if (comp_ids[u] != 0) {
-					continue;
-				}
+		// 		if (comp_ids[u] != 0) {
+		// 			continue;
+		// 		}
 
-				memset (tmark, 0, sizeof(int) * nVtx);
-				int endofbfsorder = 1;
-				tbfsorder[0] = u;
-				int cur = 0;
-				tmark[u] = 1;
-				while (cur != endofbfsorder) {
-					vertex v = tbfsorder[cur];
-					comp_ids[v] = comp_no;
-					if (idv_track[v] == -1)
-						total_weight += weight[v];
-					else {
-						int idx_of_v = idv_track[v];
-						total_weight += identical_sets[idx_of_v][0].weight;
-					}
-					for (myindex j = (*pxadj)[v]; j < (*pxadj)[v + 1]; j++) {
-						vertex w = (*padj)[j];
-						if ((w != -1) && (tmark[w] == 0)) {
-							tbfsorder[endofbfsorder++] = w;
-							tmark[w] = 1;
-						}
-					}
-					cur++;
-				}
-				total_comp_weights_of_each_comp[comp_no] = total_weight;
-				comp_no++;
-			}
-		}
+		// 		memset (tmark, 0, sizeof(int) * nVtx);
+		// 		int endofbfsorder = 1;
+		// 		tbfsorder[0] = u;
+		// 		int cur = 0;
+		// 		tmark[u] = 1;
+		// 		while (cur != endofbfsorder) {
+		// 			vertex v = tbfsorder[cur];
+		// 			comp_ids[v] = comp_no;
+		// 			if (idv_track[v] == -1)
+		// 				total_weight += weight[v];
+		// 			else {
+		// 				int idx_of_v = idv_track[v];
+		// 				total_weight += identical_sets[idx_of_v][0].weight;
+		// 			}
+		// 			for (myindex j = (*pxadj)[v]; j < (*pxadj)[v + 1]; j++) {
+		// 				vertex w = (*padj)[j];
+		// 				if ((w != -1) && (tmark[w] == 0)) {
+		// 					tbfsorder[endofbfsorder++] = w;
+		// 					tmark[w] = 1;
+		// 				}
+		// 			}
+		// 			cur++;
+		// 		}
+		// 		total_comp_weights_of_each_comp[comp_no] = total_weight;
+		// 		comp_no++;
+		// 	}
+		// }
 
 
 		/**
@@ -1033,21 +1033,26 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 		for (int i = 0; i < next_idvset_id; i++) {
 			if (identical_sets_c[i] > 0) {
 
-				double total_weight_of_the_graph = total_comp_weights_of_each_comp[comp_ids[identical_sets[i][1].id]];
+				// double total_weight_of_the_graph = total_comp_weights_of_each_comp[comp_ids[identical_sets[i][1].id]];
 
-				Betweenness bc_of_idv_repr = (*bc)[identical_sets[i][1].id];
+				// Betweenness bc_of_idv_repr = (*bc)[identical_sets[i][1].id];
 #ifdef BCCOMP_DBG
 				printf("bc of idv-%d is %lf in update AB\n",identical_sets[i][1].id + 1, bc_of_idv_repr );
 #endif
+				#pragma region CC
+				int node_id_repr = identical_sets[i][1].id;
+				#pragma endregion //CC
 				double w_of_idv_repr = identical_sets[i][1].weight;
+
 				for (int j = 2; j < identical_sets_c[i]; j++) {
-					double tobe_added = 0;
-					if ((total_weight_of_the_graph - identical_sets[i][0].weight) <= 0)
-						tobe_added = bc_of_idv_repr;
-					else
-						tobe_added = bc_of_idv_repr + ((identical_sets[i][j].weight - w_of_idv_repr) *
-								(total_weight_of_the_graph - identical_sets[i][0].weight));
-					(*bc)[identical_sets[i][j].id] += tobe_added;
+					// double tobe_added = 0;
+					// if ((total_weight_of_the_graph - identical_sets[i][0].weight) <= 0)
+					// 	tobe_added = bc_of_idv_repr;
+					// else
+					// 	tobe_added = bc_of_idv_repr + ((identical_sets[i][j].weight - w_of_idv_repr) *
+					// 			(total_weight_of_the_graph - identical_sets[i][0].weight));
+					// (*bc)[identical_sets[i][j].id] += tobe_added;
+					CCs[identical_sets[i][j].id] = CCs[node_id_repr] + 2 * (w_of_idv_repr - identical_sets[i][j].weight);
 #ifdef BCCOMP_DBG
 					printf("%lf is added to bc[%d] at update AB, btw total_weight_of_the_graph is %lf\n",
 							tobe_added, identical_sets[i][j].id + 1,
@@ -1063,17 +1068,22 @@ int main_bc(int nVtx, int **pxadj, int **padj, int **ptadj, Betweenness **bc,
 		// bc's of copied articulation vertices are transferred to associated real articulation vertex,
 		// must be done at the end. Notice the reverse traversal for the sake of correct bc calculation
 		/**
-		 * 對那些新的 AP分身
+		 * 新的AP分身，要把自身收集到的CC返回給AP本尊
 		*/
 		for (int i = nVtx - 1; i >= startingnVtx; i--) {
 			int u = art_track[i - startingnVtx];
 			if (u != -1) {
-				(*bc)[u] += (*bc)[i];
+				// (*bc)[u] += (*bc)[i];
+				#pragma region CC
+				CCs[u] += CCs[i];
+				#pragma endregion //CC
 #ifdef BCCOMP_DBG
 				printf("%lf from copy artp: %d is transferred to orig artp: %d\n", (*bc)[i], i+1, u+1);
 #endif
 			}
 		}
+
+
 
 		util::timestamp t_4191;
 		if (Try >= THROW_AWAY) {

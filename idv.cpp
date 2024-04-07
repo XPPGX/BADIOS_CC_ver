@@ -156,42 +156,42 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 							*/
 							if (is_v2_idv) {
 								// update C is moved here, since it must be added when idv created
-								bc[(*identical_sets)[idx_of_v2][1].id] +=
-										((*identical_sets)[idx_of_v2][1].weight - 1) * (*identical_sets)[idx_of_v1][0].weight;
+								// bc[(*identical_sets)[idx_of_v2][1].id] +=
+								// 		((*identical_sets)[idx_of_v2][1].weight - 1) * (*identical_sets)[idx_of_v1][0].weight;
 #ifdef BCCOMP_DBG
 								printf("%lf IS ADDED TO bc[%d], UPDATE C\n",
 										((*identical_sets)[idx_of_v2][1].weight - 1) * (*identical_sets)[idx_of_v1][0].weight,
 										(*identical_sets)[idx_of_v2][1].id+1);
 #endif
-								for (int l = 2; l < (*identical_sets_c)[idx_of_v2]; l++) {
-									bc[(*identical_sets)[idx_of_v2][l].id] +=
-											((*identical_sets)[idx_of_v2][l].weight - (*identical_sets)[idx_of_v2][1].weight)
-											* (*identical_sets)[idx_of_v1][0].weight;
-#ifdef BCCOMP_DBG
-									printf("%lf IS ADDED TO bc[%d], UPDATE C\n",
-											((*identical_sets)[idx_of_v2][l].weight - (*identical_sets)[idx_of_v2][1].weight)
-											* (*identical_sets)[idx_of_v1][0].weight, (*identical_sets)[idx_of_v2][l].id+1);
-#endif
-								}
+// 								for (int l = 2; l < (*identical_sets_c)[idx_of_v2]; l++) {
+// 									bc[(*identical_sets)[idx_of_v2][l].id] +=
+// 											((*identical_sets)[idx_of_v2][l].weight - (*identical_sets)[idx_of_v2][1].weight)
+// 											* (*identical_sets)[idx_of_v1][0].weight;
+// #ifdef BCCOMP_DBG
+// 									printf("%lf IS ADDED TO bc[%d], UPDATE C\n",
+// 											((*identical_sets)[idx_of_v2][l].weight - (*identical_sets)[idx_of_v2][1].weight)
+// 											* (*identical_sets)[idx_of_v1][0].weight, (*identical_sets)[idx_of_v2][l].id+1);
+// #endif
+// 								}
 
 								// v1 updates
-								bc[(*identical_sets)[idx_of_v1][1].id] += ((*identical_sets)[idx_of_v1][1].weight - 1) *
-										(*identical_sets)[idx_of_v2][0].weight;
+								// bc[(*identical_sets)[idx_of_v1][1].id] += ((*identical_sets)[idx_of_v1][1].weight - 1) *
+								// 		(*identical_sets)[idx_of_v2][0].weight;
 #ifdef BCCOMP_DBG
 								printf("%lf IS ADDED TO bc[%d], UPDATE C\n", ((*identical_sets)[idx_of_v1][1].weight - 1) *
 										(*identical_sets)[idx_of_v2][0].weight, (*identical_sets)[idx_of_v1][1].id+1);
 #endif
 
-								for (int l = 2; l < (*identical_sets_c)[idx_of_v1]; l++) {
-									bc[(*identical_sets)[idx_of_v1][l].id] +=
-											((*identical_sets)[idx_of_v1][l].weight - (*identical_sets)[idx_of_v1][1].weight)
-											* (*identical_sets)[idx_of_v2][0].weight;
-#ifdef BCCOMP_DBG
-									printf("%lf IS ADDED TO bc[%d], UPDATE C\n",
-											((*identical_sets)[idx_of_v1][l].weight - (*identical_sets)[idx_of_v1][1].weight)
-											* (*identical_sets)[idx_of_v2][0].weight, (*identical_sets)[idx_of_v1][l].id+1);
-#endif
-								}
+// 								for (int l = 2; l < (*identical_sets_c)[idx_of_v1]; l++) {
+// 									bc[(*identical_sets)[idx_of_v1][l].id] +=
+// 											((*identical_sets)[idx_of_v1][l].weight - (*identical_sets)[idx_of_v1][1].weight)
+// 											* (*identical_sets)[idx_of_v2][0].weight;
+// #ifdef BCCOMP_DBG
+// 									printf("%lf IS ADDED TO bc[%d], UPDATE C\n",
+// 											((*identical_sets)[idx_of_v1][l].weight - (*identical_sets)[idx_of_v1][1].weight)
+// 											* (*identical_sets)[idx_of_v2][0].weight, (*identical_sets)[idx_of_v1][l].id+1);
+// #endif
+// 								}
 
 								// v2 is newly binded to v1. So, 'bc of v1' amount of centrality at this point is subtracted
 								// from bc of v2 and its idv array at this point. It will be compensated
@@ -199,21 +199,21 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 								// However, when v2 (which is to be merged to v1) is repr of another idv, then 'bc of v2'
 								// amount of centrality is added back
 								// to other elements of that idv set (i think), so do it that first.
-								for (int l = 2; l < (*identical_sets_c)[idx_of_v2]; l++) {
-									bc[(*identical_sets)[idx_of_v2][l].id] += bc[(*identical_sets)[idx_of_v2][1].id];
-#ifdef BCCOMP_DBG
-									printf("%lf IS ADDED TO bc[%d]\n", bc[(*identical_sets)[idx_of_v2][1].id],
-											(*identical_sets)[idx_of_v2][l].id+1);
-#endif
-								}
+// 								for (int l = 2; l < (*identical_sets_c)[idx_of_v2]; l++) {
+// 									bc[(*identical_sets)[idx_of_v2][l].id] += bc[(*identical_sets)[idx_of_v2][1].id];
+// #ifdef BCCOMP_DBG
+// 									printf("%lf IS ADDED TO bc[%d]\n", bc[(*identical_sets)[idx_of_v2][1].id],
+// 											(*identical_sets)[idx_of_v2][l].id+1);
+// #endif
+// 								}
 
-								for (int l = 1; l < (*identical_sets_c)[idx_of_v2]; l++) {
-									bc[(*identical_sets)[idx_of_v2][l].id] -= bc[(*identical_sets)[idx_of_v1][1].id];
-#ifdef BCCOMP_DBG
-									printf("%lf IS REMOVED FROM bc[%d]\n", bc[(*identical_sets)[idx_of_v1][1].id],
-											(*identical_sets)[idx_of_v2][l].id+1);
-#endif
-								}
+// 								for (int l = 1; l < (*identical_sets_c)[idx_of_v2]; l++) {
+// 									bc[(*identical_sets)[idx_of_v2][l].id] -= bc[(*identical_sets)[idx_of_v1][1].id];
+// #ifdef BCCOMP_DBG
+// 									printf("%lf IS REMOVED FROM bc[%d]\n", bc[(*identical_sets)[idx_of_v1][1].id],
+// 											(*identical_sets)[idx_of_v2][l].id+1);
+// #endif
+// 								}
 
 
 								/**
@@ -262,32 +262,32 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 							}
 							else {
 								// update C is moved here, since it must be added when idv created
-								bc[v2] += (weight[v2] - 1) * (*identical_sets)[idx_of_v1][0].weight;
+								// bc[v2] += (weight[v2] - 1) * (*identical_sets)[idx_of_v1][0].weight;
 #ifdef BCCOMP_DBG
 								printf("%lf IS ADDED TO bc[%d], UPDATE C\n", (weight[v2] - 1) *
 										(*identical_sets)[idx_of_v1][0].weight, v2+1);
 #endif
 
-								bc[(*identical_sets)[idx_of_v1][1].id] += ((*identical_sets)[idx_of_v1][1].weight - 1) *
-										weight[v2];
+								// bc[(*identical_sets)[idx_of_v1][1].id] += ((*identical_sets)[idx_of_v1][1].weight - 1) *
+								// 		weight[v2];
 #ifdef BCCOMP_DBG
 								printf("%lf IS ADDED TO bc[%d], UPDATE C\n", ((*identical_sets)[idx_of_v1][1].weight - 1) *
 										weight[v2], (*identical_sets)[idx_of_v1][1].id+1);
 #endif
-								for (int l = 2; l < (*identical_sets_c)[idx_of_v1]; l++) {
-									bc[(*identical_sets)[idx_of_v1][l].id] +=
-											((*identical_sets)[idx_of_v1][l].weight - (*identical_sets)[idx_of_v1][1].weight)
-											* weight[v2];
+// 								for (int l = 2; l < (*identical_sets_c)[idx_of_v1]; l++) {
+// 									bc[(*identical_sets)[idx_of_v1][l].id] +=
+// 											((*identical_sets)[idx_of_v1][l].weight - (*identical_sets)[idx_of_v1][1].weight)
+// 											* weight[v2];
 
-#ifdef BCCOMP_DBG
-									printf("%lf IS ADDED TO bc[%d], UPDATE C\n",
-											((*identical_sets)[idx_of_v1][l].weight - (*identical_sets)[idx_of_v1][1].weight)
-											* weight[v2], (*identical_sets)[idx_of_v1][l].id+1);
-#endif
-								}
+// #ifdef BCCOMP_DBG
+// 									printf("%lf IS ADDED TO bc[%d], UPDATE C\n",
+// 											((*identical_sets)[idx_of_v1][l].weight - (*identical_sets)[idx_of_v1][1].weight)
+// 											* weight[v2], (*identical_sets)[idx_of_v1][l].id+1);
+// #endif
+// 								}
 								// v2 is newly binded to v1. So, 'bc of v1' amount of centrality at this point is subtracted
 								// from bc of v2 at this point.
-								bc[v2] -= bc[(*identical_sets)[idx_of_v1][1].id];
+								// bc[v2] -= bc[(*identical_sets)[idx_of_v1][1].id];
 #ifdef BCCOMP_DBG
 								printf("%lf IS REMOVED FROM bc[%d]\n", bc[(*identical_sets)[idx_of_v1][1].id], v2+1);
 #endif
@@ -327,32 +327,32 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 							 * 這邊也有BC更新的部分
 							*/
 							// adjust bc's of neig's of idvs if it's TYPE-1
-							if (type == 1) {
-								double existing_weight = (*identical_sets)[idx_of_v1][0].weight;
-								double total_weight = new_weight + existing_weight;
-								Betweenness tobe_added = ((total_weight * total_weight) -
-										((existing_weight * existing_weight) + (new_weight * new_weight))) / neig_num;
-								for (myindex k = xadj[v1]; k < xadj[v1+1]; k++) {
-									int neig = adj[k];
-									if (neig != -1) {
-										if ((*idv_track)[neig] != -1) {
-											int idx_of_neig = (*idv_track)[neig];
-											bc[(*identical_sets)[idx_of_neig][1].id] += tobe_added;
-#ifdef BCCOMP_DBG
-											printf("%lf is added to bc[%d]\n", tobe_added,
-													(*identical_sets)[idx_of_neig][1].id+1);
-#endif
-										}
-										else {
-											bc[neig] += tobe_added;
-#ifdef BCCOMP_DBG
-											printf("%lf is added to bc[%d] at idv_merge of %d to %d\n", tobe_added,
-													neig+1, v2+1, v1+1);
-#endif
-										}
-									}
-								}
-							}
+// 							if (type == 1) {
+// 								double existing_weight = (*identical_sets)[idx_of_v1][0].weight;
+// 								double total_weight = new_weight + existing_weight;
+// 								Betweenness tobe_added = ((total_weight * total_weight) -
+// 										((existing_weight * existing_weight) + (new_weight * new_weight))) / neig_num;
+// 								for (myindex k = xadj[v1]; k < xadj[v1+1]; k++) {
+// 									int neig = adj[k];
+// 									if (neig != -1) {
+// 										if ((*idv_track)[neig] != -1) {
+// 											int idx_of_neig = (*idv_track)[neig];
+// 											bc[(*identical_sets)[idx_of_neig][1].id] += tobe_added;
+// #ifdef BCCOMP_DBG
+// 											printf("%lf is added to bc[%d]\n", tobe_added,
+// 													(*identical_sets)[idx_of_neig][1].id+1);
+// #endif
+// 										}
+// 										else {
+// 											bc[neig] += tobe_added;
+// #ifdef BCCOMP_DBG
+// 											printf("%lf is added to bc[%d] at idv_merge of %d to %d\n", tobe_added,
+// 													neig+1, v2+1, v1+1);
+// #endif
+// 										}
+// 									}
+// 								}
+// 							}
 
 
 							/**
@@ -499,32 +499,32 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 								already_added = true;
 							}
 							// update C is moved here, since it must be added when idv created
-							bc[v2] += (weight[v2] - 1) * (*identical_sets)[idx_of_v1][0].weight;
+							// bc[v2] += (weight[v2] - 1) * (*identical_sets)[idx_of_v1][0].weight;
 #ifdef BCCOMP_DBG
 							printf("%lf IS ADDED TO bc[%d], UPDATE C\n", (weight[v2] - 1) *
 									(*identical_sets)[idx_of_v1][0].weight, v2+1);
 #endif
 
-							bc[(*identical_sets)[idx_of_v1][1].id] += ((*identical_sets)[idx_of_v1][1].weight - 1) * weight[v2];
+							// bc[(*identical_sets)[idx_of_v1][1].id] += ((*identical_sets)[idx_of_v1][1].weight - 1) * weight[v2];
 #ifdef BCCOMP_DBG
 							printf("%lf IS ADDED TO bc[%d], UPDATE C\n", ((*identical_sets)[idx_of_v1][1].weight - 1) *
 									weight[v2], (*identical_sets)[idx_of_v1][1].id+1);
 #endif
 
-							for (int l = 2; l < (*identical_sets_c)[idx_of_v1]; l++) {
-								bc[(*identical_sets)[idx_of_v1][l].id] += ((*identical_sets)[idx_of_v1][l].weight -
-										(*identical_sets)[idx_of_v1][1].weight) * weight[v2];
+// 							for (int l = 2; l < (*identical_sets_c)[idx_of_v1]; l++) {
+// 								bc[(*identical_sets)[idx_of_v1][l].id] += ((*identical_sets)[idx_of_v1][l].weight -
+// 										(*identical_sets)[idx_of_v1][1].weight) * weight[v2];
 
-#ifdef BCCOMP_DBG
-								printf("%lf IS ADDED TO bc[%d], UPDATE C\n",
-										((*identical_sets)[idx_of_v1][l].weight - (*identical_sets)[idx_of_v1][1].weight)
-										* weight[v2], (*identical_sets)[idx_of_v1][l].id+1);
-#endif
-							}
+// #ifdef BCCOMP_DBG
+// 								printf("%lf IS ADDED TO bc[%d], UPDATE C\n",
+// 										((*identical_sets)[idx_of_v1][l].weight - (*identical_sets)[idx_of_v1][1].weight)
+// 										* weight[v2], (*identical_sets)[idx_of_v1][l].id+1);
+// #endif
+// 							}
 
 							// v2 is newly binded to v1. So, 'bc of v1' amount of centrality at this point is subtracted
 							// from bc of v2 at this point.
-							bc[v2] -= bc[v1];
+							// bc[v2] -= bc[v1];
 #ifdef BCCOMP_DBG
 							printf("%lf IS REMOVED FROM bc[%d]\n", bc[v1], v2+1);
 #endif
@@ -556,35 +556,35 @@ void idv_detection_and_merge(int type, int len, int* component, int* reversecomp
 
 							neigsums[i][k] = -1; //removed from neigsums list
 							// adjust bc's of neig's of idvs if it's TYPE-1
-							if (type == 1) {
+// 							if (type == 1) {
 								
-								//這裡的內容可以整個註解掉，之後再改成 CC的版本
-								double new_weight = weight[v2];
-								double existing_weight = (*identical_sets)[idx_of_v1][0].weight;
-								double total_weight = new_weight + existing_weight;
-								Betweenness tobe_added = ((total_weight * total_weight) -
-										((existing_weight * existing_weight) + (new_weight * new_weight))) / neig_num;
-								for (myindex k = xadj[v1]; k < xadj[v1+1]; k++) {
-									int neig = adj[k];
-									if (neig != -1) {
-										if ((*idv_track)[neig] != -1) {
-											int idx_of_neig = (*idv_track)[neig];
-											bc[(*identical_sets)[idx_of_neig][1].id] += tobe_added;
-#ifdef BCCOMP_DBG
-											printf("%lf IS ADDED TO bc[%d]\n", tobe_added,
-													(*identical_sets)[idx_of_neig][1].id+1);
-#endif
-										}
-										else {
-											bc[neig] += tobe_added;
-#ifdef BCCOMP_DBG
-											printf("%lf is added to bc[%d] at new idv creation of id-repr:%d and %d\n",
-													tobe_added, neig+1, v1+1, v2+1);
-#endif
-										}
-									}
-								}
-							}
+// 								//這裡的內容可以整個註解掉，之後再改成 CC的版本
+// 								double new_weight = weight[v2];
+// 								double existing_weight = (*identical_sets)[idx_of_v1][0].weight;
+// 								double total_weight = new_weight + existing_weight;
+// 								Betweenness tobe_added = ((total_weight * total_weight) -
+// 										((existing_weight * existing_weight) + (new_weight * new_weight))) / neig_num;
+// 								for (myindex k = xadj[v1]; k < xadj[v1+1]; k++) {
+// 									int neig = adj[k];
+// 									if (neig != -1) {
+// 										if ((*idv_track)[neig] != -1) {
+// 											int idx_of_neig = (*idv_track)[neig];
+// 											bc[(*identical_sets)[idx_of_neig][1].id] += tobe_added;
+// #ifdef BCCOMP_DBG
+// 											printf("%lf IS ADDED TO bc[%d]\n", tobe_added,
+// 													(*identical_sets)[idx_of_neig][1].id+1);
+// #endif
+// 										}
+// 										else {
+// 											bc[neig] += tobe_added;
+// #ifdef BCCOMP_DBG
+// 											printf("%lf is added to bc[%d] at new idv creation of id-repr:%d and %d\n",
+// 													tobe_added, neig+1, v1+1, v2+1);
+// #endif
+// 										}
+// 									}
+// 								}
+// 							}
 							// total weight is updated
 							(*identical_sets)[idx_of_v1][0].weight += weight[v2]; // total weight is updated
 							

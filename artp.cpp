@@ -409,10 +409,10 @@ void articulation_point_copy (int* nVtx, int artc, int* nextvid, int* len, int* 
 				//不該用 i 去索引 comp_dist_from_u，應該用別的
 				(*ff)[i] += (*ff)[u] + (total_comp_dist_from_u - comp_dist_from_u[comp_du_index]);
 				comp_du_index ++;
-				if(std::isnan((*ff)[i])){
-					printf("new ff[%d] = %f, ff[u] = %f, total_comp_dist_from_u = %f, comp_dist_from_u[%d] = %f\n", i, (*ff)[i], (*ff)[u], total_comp_dist_from_u, i, comp_dist_from_u[comp_du_index]);
-					exit(1);
-				}
+				// if(std::isnan((*ff)[i])){
+				// 	printf("new ff[%d] = %f, ff[u] = %f, total_comp_dist_from_u = %f, comp_dist_from_u[%d] = %f\n", i, (*ff)[i], (*ff)[u], total_comp_dist_from_u, i, comp_dist_from_u[comp_du_index]);
+				// 	exit(1);
+				// }
 				#pragma endregion //CC
 				
 

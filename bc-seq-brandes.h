@@ -120,12 +120,12 @@ void remove_degree_1s (int nVtx, vertex* component, vertex* reversecomp, Bucket*
 
 void compute_bc_weight (int start, int end, vertex* ordered_comp, double* ordered_weight, vertex* newxadj,
 		vertex* newadj, vertex* bfsorder, int* endpred, int* level, pathnumber* sigma,
-		vertex* Pred, Betweenness* delta, Betweenness* bc, util::timestamp& phase1time, util::timestamp& phase2time);
+		vertex* Pred, Betweenness* delta, Betweenness* bc, util::timestamp& phase1time, util::timestamp& phase2time, double* CCs, card_info* ordered_cardinality);
 
 void compute_bc_weight_card (int start, int end, vertex*  ordered_comp, double*  ordered_weight, vertex*  newxadj,
 		vertex*  newadj, vertex*  bfsorder, int*  endpred, int*  level, pathnumber*  sigma,
 		vertex*  Pred, Betweenness*  delta, Betweenness*  bc, card_info* ordered_cardinality,
-		util::timestamp& phase1time, util::timestamp& phase2time);
+		util::timestamp& phase1time, util::timestamp& phase2time, double* CCs);
 
 void compute_bc_card (int start, int end, vertex*  ordered_comp, vertex*  newxadj, vertex*  newadj,
 		vertex*  bfsorder, int*  endpred, int*  level, pathnumber*  sigma, vertex*  Pred, Betweenness*  delta,
