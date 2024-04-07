@@ -104,8 +104,8 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 					if ((w != -1) && (tmark[w] == 0)) {
 						tbfsorder[endofbfsorder++] = w;
 						tmark[w] = 1;
-						dist_arr[w] = dist_arr[v] + 1;
-						comp_dist_from_u += dist_arr[w];
+						// dist_arr[w] = dist_arr[v] + 1;
+						// comp_dist_from_u += dist_arr[w];
 					}
 				}
 				cur++;
@@ -153,34 +153,34 @@ void bridge_removal (int nVtx, int len, vertex* bridges, int bridges_c, int* num
 			
 
 			//先取得 comp_dist_from_u
-			// memset(tmark, 0, sizeof(int) * nVtx);
-			// memset(dist_arr, 0, sizeof(double) * nVtx);
-			// endofbfsorder = 1;
-			// tbfsorder[0] = u;
-			// cur = 0;
-			// tmark[u] = 1;
-			// dist_arr[u] = 0;
-			// while (cur != endofbfsorder) {
-			// 	vertex v = tbfsorder[cur];
+			memset(tmark, 0, sizeof(int) * nVtx);
+			memset(dist_arr, 0, sizeof(double) * nVtx);
+			endofbfsorder = 1;
+			tbfsorder[0] = u;
+			cur = 0;
+			tmark[u] = 1;
+			dist_arr[u] = 0;
+			while (cur != endofbfsorder) {
+				vertex v = tbfsorder[cur];
 				
-			// 	for (myindex j = xadj[v]; j < xadj[v + 1]; j++) {
-			// 		vertex w = adj[j];
-			// 		if ((w != -1) && (tmark[w] == 0)) {
-			// 			tbfsorder[endofbfsorder++] = w;
-			// 			tmark[w] = 1;
+				for (myindex j = xadj[v]; j < xadj[v + 1]; j++) {
+					vertex w = adj[j];
+					if ((w != -1) && (tmark[w] == 0)) {
+						tbfsorder[endofbfsorder++] = w;
+						tmark[w] = 1;
 
-			// 			dist_arr[w] = dist_arr[v] + 1;
-			// 			if(idv_track[w] == -1){
-			// 				comp_dist_from_u += dist_arr[w] * weight[w] + ff[w];
-			// 			}
-			// 			else{
-			// 				int idx_of_w = idv_track[w];
-			// 				comp_dist_from_u += dist_arr[w] * identical_sets[idx_of_w][0].weight + ff[w];
-			// 			}
-			// 		}
-			// 	}
-			// 	cur++;
-			// }
+						dist_arr[w] = dist_arr[v] + 1;
+						if(idv_track[w] == -1){
+							comp_dist_from_u += dist_arr[w] * weight[w] + ff[w];
+						}
+						else{
+							int idx_of_w = idv_track[w];
+							comp_dist_from_u += dist_arr[w] * identical_sets[idx_of_w][0].weight + ff[w];
+						}
+					}
+				}
+				cur++;
+			}
 
 			//再取得 comp_dist_from_v
 			memset(tmark, 0, sizeof(int) * nVtx);
